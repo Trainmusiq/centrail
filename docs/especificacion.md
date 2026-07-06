@@ -1,7 +1,7 @@
 # Centrail — Especificación del proyecto
 
 **Marca paraguas:** TrainMusiq · **Producto (vagón 1):** Centrail — diagnóstico y corrección de afinación de referencia
-**Versión:** 1.2 · Julio 2026
+**Versión:** 1.6 · Julio 2026
 **Autor:** Juanma (Punta Arenas) con Claude
 **Estado:** Prototipo 1 validado. Este documento es el traspaso a la fase de construcción en Claude Code y el norte anti-dispersión del proyecto completo.
 
@@ -43,6 +43,12 @@ Parámetros y método exactos del prototipo, que deben conservarse al portar:
 - **Deriva (drift)**: el tema se divide en 10 segmentos, cada uno con su propia media circular. Deriva máxima < 3 ¢ → corrección global basta; 3–10 ¢ → advertir variación leve (típico cinta); > 10 ¢ → recomendar corrección por tramos (feature futura).
 - Métricas de honestidad expuestas al usuario: **incertidumbre** (± cents, heurística sobre dispersión circular) y **consistencia tonal** (largo del vector resultante R del histograma completo; R > 0.35 alta, 0.15–0.35 media, < 0.15 baja/no confiable).
 
+**Hallazgos de la validación con archivos reales (julio 2026, sesión Claude Code):**
+- **Tubería de decodificación unificada (requisito duro):** medir y corregir SIEMPRE sobre la misma decodificación. `decodeAudioData` del navegador puede resamplear al sample rate del `AudioContext` y desplazó la medición ~0.9 ¢ respecto de la decodificación FLAC nativa del mismo archivo. La app nunca debe medir por un camino y procesar por otro.
+- **R bajo ≠ medición mala.** Los archivos de validación tienen R≈8% (zona "no confiable") y aun así la medición coincidió entre herramientas y tuberías independientes dentro de ~1 ¢: R bajo indica histograma disperso (percusión, mezcla densa), no necesariamente centro tonal ambiguo. Mejora para v1 o v1.x: estimar la confianza por **repetibilidad empírica** — medir mitades (o subconjuntos de ventanas) por separado y reportar su diferencia como incertidumbre real — en lugar de depender solo de R. Recalibrar los umbrales de R con más material real.
+- **Motor de corrección validado:** shift exacto de +100 ¢ sobre tono sintético reproduce con error de +0.017 ¢ (Rubber Band Finer es transparente en la práctica). Los errores de cents observados en round-trips con material real provienen de la re-medición en material de R bajo, no de la corrección.
+- **Percusión inarmónica (mejora identificada, NO entra a v1 — algoritmo congelado):** las percusiones son mayormente inarmónicas (modos de membrana/platillos sin razones enteras); su energía se reparte uniforme por el histograma: diluye el peak (baja R) pero no lo desplaza (la medición sigue siendo repetible). Cortar bandas de frecuencia NO sirve (la percusión es de banda ancha y se solapa con bajo y armónicos). La separación correcta es temporal: (a) **persistencia de picos** — contar solo picos presentes en la misma frecuencia durante 2-3 ventanas consecutivas (cambio barato, candidato v1.x); (b) **HPSS** clásico por filtros de mediana sobre el espectrograma, medir solo la capa armónica (candidato v1.x); (c) **la etapa 2 lo resuelve estructuralmente**: medir sobre stems armónicos excluyendo batería = el "refinamiento por stem" premium ya planificado.
+
 Nota de contexto (investigado julio 2026): para pitch monofónico neural existen PESTO (130k parámetros, tiempo real, TISMIR 2025) y FCPE (2025, ~77× más rápido que CREPE). **No se necesitan para la detección global** (el método espectral estadístico es el correcto para mezclas completas), pero PESTO es el candidato para el refinamiento por stem (etapa 2+, tier de pago).
 
 ## 4. Etapa 1 — App completa de pitch (fase Claude Code)
@@ -59,7 +65,7 @@ Nota de contexto (investigado julio 2026): para pitch monofónico neural existen
 - Entrada: WAV, FLAC (incluida alta resolución 24-bit/96kHz), MP3, OGG y M4A/AAC — todos con decodificación nativa del navegador. AIFF: **sin soporte nativo en Chrome/Firefox**, requiere decodificador propio; como es PCM simple (pariente de WAV), incluirlo en v1 solo si el costo de implementación resulta trivial; si no, difiere a v1.x documentado.
 - Decodificación: `decodeAudioData` del navegador para detección (ya funciona). Para **corrección con exportación en resolución original**, usar decodificación propia (libflac.js / decodificador WAV propio) porque `decodeAudioData` convierte a float32 al sample rate del contexto.
 - Procesamiento por **chunks con Web Workers** (no bloquear UI, no reventar RAM con FLACs largos).
-- Exportación v1: **mismo formato y resolución de entrada** (FLAC→FLAC con libflac.js encoder, WAV→WAV) + **WAV siempre disponible como alternativa** (costo trivial, cubre la mayoría de los casos de "quiero otro formato"). Conversión completa entre formatos/resoluciones (elegir compresión y bit depth de salida): **v1.x explícita, fuera del release inicial** — un conversor completo es scope creep respecto del propósito de Centrail. Nombre de salida: `{original}_{destino}Hz.{ext}`.
+- Exportación v1: **mismo formato y resolución de entrada** (FLAC→FLAC con libflac.js encoder, WAV→WAV) + **WAV siempre disponible** + **FLAC siempre disponible** como alternativa para cualquier entrada (delta cero: el encoder libflac.js ya es requisito de FLAC→FLAC). Exportación v1.x: **MP3 con lamejs** (encoder LAME en JS puro; patentes expiradas en 2017, sin fricción GPL) — default 320 kbps con advertencia visible de formato con pérdida — y conversión completa entre formatos/resoluciones (elegir compresión y bit depth de salida); un conversor completo en v1 sería scope creep respecto del propósito de Centrail. Nombre de salida: `{original}_{destino}Hz.{ext}`.
 
 ### 4.3 Flujo de UX (el diferenciador)
 
@@ -72,7 +78,7 @@ Nota de contexto (investigado julio 2026): para pitch monofónico neural existen
 
 - Detecta y corrige un FLAC 24/96 de 10+ minutos sin colgar el navegador.
 - La corrección no altera la duración del archivo (verificable en muestras).
-- Round-trip verificable: corregir un archivo desviado y volver a medirlo debe dar el destino ±0.5 ¢.
+- Round-trip verificable: (a) en el **test sintético** automatizado, error ≤ 0.1 ¢ (validado: 0.017 ¢); (b) en **material real de consistencia media/alta**, corregir y re-medir debe dar el destino ±0.5 ¢; (c) en material de **R bajo**, el criterio no es de precisión sino de honestidad: la app debe declarar la medición como no confiable en vez de reportar falsa precisión.
 - Publicada en GitHub Pages con README en español e inglés, licencia GPL v3 (decidida: Rubber Band es GPL y el espíritu "regalo al mundo" es coherente con copyleft).
 - **Idiomas**: release con **español (chileno neutro) + inglés**, con arquitectura i18n lista desde el día uno (patrón ya probado en el timer HIIT de 11 idiomas). Primera actualización post-release (v1.1): completar **10 idiomas**, elegidos por las culturas con mayor producción y consumo musical/de audio: español, inglés, portugués (Brasil), francés, alemán, italiano, japonés, coreano, chino simplificado y ruso. Razón del orden: los 8 idiomas restantes no deben pararse entre el código terminado y el primer release (regla anti-dispersión, §9).
 
@@ -123,3 +129,13 @@ El prototipo estableció una dirección: **instrumento de banco de pruebas** —
 2. Licencia GPL v3 (decidida, §9): agregar LICENSE al primer commit.
 3. Integrar rubberband-wasm y lograr el primer round-trip: archivo → detectar → corregir a destino → re-medir → verificar ±0.5 ¢.
 4. Recién después: chunks/workers para archivos grandes y exportación FLAC.
+
+## 11. Seguridad
+
+**Principio: la arquitectura client-side es la primera medida de seguridad.** Sin servidor, sin base de datos, sin cuentas y sin datos de usuarios, se eliminan por diseño las categorías principales de riesgo web. El audio nunca sale del equipo del usuario. Lo que queda:
+
+- **Cuenta GitHub (la joya de la corona):** 2FA activado en `regeneracion-hub` (hecho, julio 2026) + **códigos de recuperación guardados offline**. Quien controla la cuenta puede publicar código malicioso a todos los usuarios; es el activo a proteger sobre todos los demás.
+- **Cadena de suministro (dependencias npm):** vendorizar con versiones fijadas (práctica ya en uso: rubberband-wasm, @wasm-audio-decoders/flac); mínimo de dependencias; activar **Dependabot alerts** en el repo; no actualizar dependencias sin revisar changelog. Los decodificadores y el motor corren en WASM (sandbox del navegador): un archivo de audio malformado, en el peor caso, cae la pestaña del propio usuario — riesgo aceptable.
+- **COOP/COEP (verificar en sesión 2, ANTES de construir):** si rubberband-wasm usa hilos (SharedArrayBuffer), requiere headers Cross-Origin-Opener-Policy/Cross-Origin-Embedder-Policy que **GitHub Pages no permite configurar**. Soluciones conocidas: `coi-serviceworker` (service worker que inyecta los headers) o usar el build single-thread. Decidir con evidencia, no descubrirlo al publicar.
+- **Sin recursos externos en producción:** auto-hostear tipografías (no Google Fonts CDN) y todo asset — mejor privacidad, sin dependencia de terceros, GDPR-friendly para usuarios europeos.
+- **Cuando llegue el servidor (etapa 2+, tier de pago):** ahí comienza la seguridad seria — autenticación, manejo de uploads, procesamiento de pagos, rate limiting. No subestimar; presupuestar tiempo específico al abrir esa etapa.
