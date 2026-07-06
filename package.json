@@ -7,5 +7,8 @@
   "type": "module",
   "scripts": {
     "test:roundtrip": "node test/roundtrip.mjs"
+  },
+  "dependencies": {
+    "@wasm-audio-decoders/flac": "^0.2.10"
   }
 }
