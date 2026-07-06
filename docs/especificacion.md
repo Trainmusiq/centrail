@@ -88,7 +88,7 @@ Nota de contexto (investigado julio 2026): para pitch monofónico neural existen
 
 **Etapa 4 — Piano tab con digitación.** Pipeline: audio → MIDI con Basic Pitch (Spotify, corre en navegador con TensorFlow.js) → algoritmo de digitación (programación dinámica minimizando costo de movimiento de mano; referencia académica: dataset PIG). Visualización: grilla beats (columnas) × notas (filas) con número de dedo por celda — modelo de la planilla Excel del amigo pianista, quien actúa como evaluador experto en la iteración.
 
-**Horizonte (post-etapa 4, investigación).** Análisis musicológico: progresiones, cadencias, numerales romanos con music21 (MIT); corpus anotado de los Beatles (Isophonics, ~180 canciones) como banco de pruebas. Music emotion recognition (modelos Essentia) para la línea "efecto de la música en humanos". No comprometer fechas.
+**Horizonte (post-etapa 4, investigación).** Análisis musicológico: progresiones, cadencias, numerales romanos con music21 (MIT); corpus anotado de los Beatles (Isophonics, ~180 canciones) como banco de pruebas. Music emotion recognition (modelos Essentia) para la línea "efecto de la música en humanos". **Vagón pedagógico**: programa de aprendizaje de teoría musical — no replicar musictheory.net (gratuito e imbatible en lo genérico), sino lo que nadie hace: enseñar teoría a través de la música que el usuario sube, con lecciones ancladas al análisis de los vagones 3-4 ("esta es la cadencia que acabas de escuchar en tu canción y así funciona"). Doble sentido de la marca: train = tren y entrenar. Requiere vagones 3-4 publicados. No comprometer fechas.
 
 ## 6. Modelo de tiers (hipótesis a validar, no dogma)
 
