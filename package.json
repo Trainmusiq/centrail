@@ -1,0 +1,11 @@
+{
+  "name": "centrail",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Centrail (TrainMusiq) — diagnóstico y corrección de afinación de referencia, 100% client-side",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "test:roundtrip": "node test/roundtrip.mjs"
+  }
+}

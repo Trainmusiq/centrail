@@ -1,0 +1,166 @@
+// Detector de afinación de referencia — algoritmo validado en el prototipo (docs/especificacion.md §3).
+// No reinventar: mismos parámetros y método que patron440.html.
+
+const FFT_N = 32768;
+const MAX_FRAMES = 240;          // ventanas repartidas por todo el tema
+const FMIN = 55, FMAX = 5000;    // rango útil para material armónico
+const NBINS = 100;               // 1 bin = 1 cent
+const SEGMENTS = 10;             // para la curva de drift
+
+function makeFFT(n) {
+  const levels = Math.log2(n) | 0;
+  if (1 << levels !== n) throw new Error("FFT size must be power of 2");
+  const cosT = new Float64Array(n / 2), sinT = new Float64Array(n / 2);
+  for (let i = 0; i < n / 2; i++) {
+    cosT[i] = Math.cos(2 * Math.PI * i / n);
+    sinT[i] = Math.sin(2 * Math.PI * i / n);
+  }
+  const rev = new Uint32Array(n);
+  for (let i = 0; i < n; i++) {
+    let r = 0;
+    for (let j = 0; j < levels; j++) r = (r << 1) | ((i >>> j) & 1);
+    rev[i] = r;
+  }
+  return function fft(re, im) {
+    for (let i = 0; i < n; i++) {
+      const j = rev[i];
+      if (j > i) {
+        let t = re[i]; re[i] = re[j]; re[j] = t;
+        t = im[i]; im[i] = im[j]; im[j] = t;
+      }
+    }
+    for (let size = 2; size <= n; size <<= 1) {
+      const half = size >> 1, step = n / size;
+      for (let i = 0; i < n; i += size) {
+        for (let j = i, k = 0; j < i + half; j++, k += step) {
+          const l = j + half;
+          const tre = re[l] * cosT[k] + im[l] * sinT[k];
+          const tim = -re[l] * sinT[k] + im[l] * cosT[k];
+          re[l] = re[j] - tre; im[l] = im[j] - tim;
+          re[j] += tre; im[j] += tim;
+        }
+      }
+    }
+  };
+}
+
+const fft = makeFFT(FFT_N);
+const hann = new Float64Array(FFT_N);
+for (let i = 0; i < FFT_N; i++) hann[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (FFT_N - 1));
+
+function analyzeFrame(mono, start, sr, sink) {
+  const re = new Float64Array(FFT_N), im = new Float64Array(FFT_N);
+  for (let i = 0; i < FFT_N; i++) re[i] = mono[start + i] * hann[i];
+  fft(re, im);
+  const half = FFT_N >> 1;
+  const mag = new Float64Array(half);
+  let maxMag = 0;
+  for (let i = 1; i < half; i++) {
+    const m = Math.hypot(re[i], im[i]);
+    mag[i] = m;
+    if (m > maxMag) maxMag = m;
+  }
+  if (maxMag <= 0) return;
+  const thr = maxMag * 0.002;
+  const binHz = sr / FFT_N;
+  const iMin = Math.max(2, Math.ceil(FMIN / binHz));
+  const iMax = Math.min(half - 2, Math.floor(FMAX / binHz));
+  for (let i = iMin; i <= iMax; i++) {
+    const m = mag[i];
+    if (m < thr || m <= mag[i - 1] || m < mag[i + 1]) continue;
+    // interpolación parabólica sobre magnitud logarítmica
+    const a = Math.log(mag[i - 1] + 1e-12), b = Math.log(m + 1e-12), c = Math.log(mag[i + 1] + 1e-12);
+    const denom = a - 2 * b + c;
+    let p = denom !== 0 ? 0.5 * (a - c) / denom : 0;
+    if (p > 0.5) p = 0.5; else if (p < -0.5) p = -0.5;
+    const f = (i + p) * binHz;
+    // desviación en cents respecto a la rejilla temperada A440, en (-50, 50]
+    const cents = 1200 * Math.log2(f / 440);
+    let dev = ((cents % 100) + 150) % 100 - 50;
+    const w = Math.sqrt(m / maxMag);   // compresión: que un pico no domine todo
+    sink(dev, w);
+  }
+}
+
+function circularEstimate(hist, sumSin, sumCos, totalW) {
+  // 1) peak del histograma  2) refinamiento con media circular local ±15¢
+  let peak = 0, peakVal = -1;
+  for (let i = 0; i < NBINS; i++) if (hist[i] > peakVal) { peakVal = hist[i]; peak = i; }
+  const peakDev = peak - 49.5;
+  let s = 0, c = 0, w = 0;
+  for (let i = 0; i < NBINS; i++) {
+    const dev = i - 49.5;
+    let d = dev - peakDev;
+    d = ((d % 100) + 150) % 100 - 50;
+    if (Math.abs(d) <= 15) {
+      const th = 2 * Math.PI * dev / 100;
+      s += hist[i] * Math.sin(th);
+      c += hist[i] * Math.cos(th);
+      w += hist[i];
+    }
+  }
+  const offset = Math.atan2(s, c) / (2 * Math.PI) * 100;
+  // consistencia global: largo del vector resultante de TODO el histograma
+  const R = totalW > 0 ? Math.hypot(sumSin, sumCos) / totalW : 0;
+  return { offset, R };
+}
+
+/**
+ * @param {{channelData: Float32Array[], sampleRate: number}} input
+ * @param {(p:number, label?:string)=>void} [onProgress]
+ */
+export async function analyze({ channelData, sampleRate }, onProgress) {
+  const sr = sampleRate;
+  const ch = channelData.length;
+  const len = channelData[0].length;
+  // downmix a mono
+  const mono = new Float32Array(len);
+  for (let c = 0; c < ch; c++) {
+    const d = channelData[c];
+    for (let i = 0; i < len; i++) mono[i] += d[i] / ch;
+  }
+
+  const usable = len - FFT_N;
+  if (usable < 0) throw new Error("El archivo es demasiado corto para analizar.");
+  const nFrames = Math.min(MAX_FRAMES, Math.max(8, Math.floor(usable / (FFT_N / 2))));
+  const hop = usable / Math.max(1, nFrames - 1);
+
+  const hist = new Float64Array(NBINS);
+  let sumSin = 0, sumCos = 0, totalW = 0;
+  const segHist = Array.from({ length: SEGMENTS }, () => ({ s: 0, c: 0, w: 0 }));
+
+  for (let f = 0; f < nFrames; f++) {
+    const start = Math.min(usable, Math.round(f * hop));
+    const seg = Math.min(SEGMENTS - 1, Math.floor(start / len * SEGMENTS));
+    analyzeFrame(mono, start, sr, (dev, w) => {
+      let bin = Math.round(dev + 49.5);
+      if (bin < 0) bin = 0; if (bin >= NBINS) bin = NBINS - 1;
+      hist[bin] += w;
+      const th = 2 * Math.PI * dev / 100;
+      sumSin += w * Math.sin(th); sumCos += w * Math.cos(th); totalW += w;
+      const S = segHist[seg];
+      S.s += w * Math.sin(th); S.c += w * Math.cos(th); S.w += w;
+    });
+    if (onProgress && ((f & 7) === 7 || f === nFrames - 1)) {
+      onProgress(0.15 + 0.85 * (f + 1) / nFrames, `Analizando espectro… ventana ${f + 1} de ${nFrames}`);
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+
+  const { offset, R } = circularEstimate(hist, sumSin, sumCos, totalW);
+  const refHz = 440 * Math.pow(2, offset / 1200);
+
+  // incertidumbre aproximada: dispersión circular local → error estándar heurístico
+  const disp = Math.sqrt(Math.max(0, -2 * Math.log(Math.max(1e-6, R)))) * 100 / (2 * Math.PI);
+  const unc = Math.max(0.1, Math.min(25, disp / Math.sqrt(Math.max(1, nFrames))));
+
+  const segs = segHist.map(S => {
+    if (S.w <= 0) return null;
+    const dev = Math.atan2(S.s, S.c) / (2 * Math.PI) * 100;
+    let d = dev - offset;
+    d = ((d % 100) + 150) % 100 - 50;   // relativo al global, circular
+    return { off: offset + d, R: Math.hypot(S.s, S.c) / S.w };
+  });
+
+  return { refHz, offset, R, unc, hist, nFrames, segs, sr, ch, dur: len / sr };
+}
