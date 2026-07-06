@@ -7,7 +7,7 @@ import fs from "node:fs";
 import { decodeFlacFile, loadRubberBandModule, centsOf, circularDiff, fmtDur } from "./lib.mjs";
 import { analyze } from "../engine/detect.mjs";
 import { pitchShiftOffline } from "../engine/correct.mjs";
-import { encodeWavPCM16 } from "../engine/wav.mjs";
+import { encodeWav } from "../engine/wav.mjs";
 
 function parseArgs(argv) {
   const args = { _: [] };
@@ -51,7 +51,7 @@ async function main() {
 
   const rbApi = await loadRubberBandModule();
   const t0 = Date.now();
-  const { channelData: corrected } = pitchShiftOffline(rbApi, { channelData, sampleRate, pitchScale });
+  const { channelData: corrected } = await pitchShiftOffline(rbApi, { channelData, sampleRate, pitchScale });
   console.log(`   Procesado en ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 
   if (corrected[0].length !== channelData[0].length) {
@@ -75,7 +75,7 @@ async function main() {
     console.log(`Error vs destino (${args.target} Hz):                          ${errorVsTarget >= 0 ? "+" : ""}${errorVsTarget.toFixed(3)} ¢`);
   }
 
-  fs.writeFileSync(args.out, encodeWavPCM16({ channelData: corrected, sampleRate }));
+  fs.writeFileSync(args.out, encodeWav({ channelData: corrected, sampleRate }));
   console.log(`\nEscrito: ${args.out}`);
 }
 

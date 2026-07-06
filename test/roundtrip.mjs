@@ -47,7 +47,7 @@ async function runScenario(rbApi, { label, sourceHz, targetHz }) {
   const pitchScale = targetHz / before.refHz;
   console.log(`2) Corrigiendo a ${targetHz} Hz → shift = ${shiftCents.toFixed(2)} ¢ (pitchScale=${pitchScale.toFixed(6)})…`);
 
-  const { channelData: [corrected] } = pitchShiftOffline(rbApi, {
+  const { channelData: [corrected] } = await pitchShiftOffline(rbApi, {
     channelData: [original],
     sampleRate: SR,
     pitchScale,

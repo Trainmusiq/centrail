@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Centrail — Diagnóstico y corrección de afinación de referencia</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  /* ── Tokens: estética de instrumento de banco de pruebas ──
+     fondo grafito, tinta cálida serigrafiada, ámbar de aguja VU,
+     cian de traza de osciloscopio */
+  :root {
+    --bg: #16181d;
+    --panel: #1e2128;
+    --panel-2: #24272f;
+    --line: #33373f;
+    --ink: #e9e5d9;
+    --ink-dim: #9a968c;
+    --amber: #f2a33c;
+    --cyan: #5fd4c4;
+    --red: #e06a5a;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "Archivo", -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 28px 16px 64px;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, #21242c 0%, transparent 60%);
+  }
+  .rig { max-width: 720px; margin: 0 auto; }
+
+  header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px; margin-bottom: 22px;
+  }
+  h1 { font-size: 20px; font-weight: 600; letter-spacing: 0.04em; }
+  h1 .num { color: var(--amber); font-family: var(--mono); font-weight: 500; }
+  .plate {
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink-dim);
+    letter-spacing: 0.12em; text-transform: uppercase; text-align: right;
+  }
+
+  .drop {
+    border: 1.5px dashed var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+    padding: 42px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .drop:hover, .drop.over { border-color: var(--cyan); background: var(--panel-2); }
+  .drop:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+  .drop .big { font-size: 15.5px; margin-bottom: 6px; }
+  .drop .fmt { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); letter-spacing: 0.06em; }
+  input[type=file] { display: none; }
+
+  /* ── Progreso honesto (§4.3): etapa nombrada + porcentaje real, nunca spinner ── */
+  .progress { display: none; margin-top: 18px; }
+  .progress.on { display: block; }
+  .pbar { height: 4px; background: var(--panel-2); border-radius: 2px; overflow: hidden; }
+  .pbar > div { height: 100%; width: 0%; background: var(--amber); transition: width .12s linear; }
+  .pbar.done > div { background: var(--cyan); }
+  .pbar.error > div { background: var(--red); width: 100% !important; }
+  .plabel { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); margin-top: 8px; }
+  .plabel.error { color: var(--red); }
+
+  .result { display: none; margin-top: 26px; }
+  .result.on { display: block; animation: rise .35s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .result.on { animation: none; } }
+
+  .readout {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 26px 22px 20px; text-align: center; position: relative; overflow: hidden;
+  }
+  .readout::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px; opacity: 0.12; pointer-events: none;
+  }
+  .hz {
+    font-family: var(--mono); font-size: clamp(44px, 11vw, 68px); font-weight: 500;
+    color: var(--amber); line-height: 1; text-shadow: 0 0 24px rgba(242,163,60,0.25); position: relative;
+  }
+  .hz small { font-size: 0.38em; color: var(--ink-dim); font-weight: 400; }
+  .verdict { margin-top: 10px; font-size: 14px; position: relative; }
+  .verdict b { color: var(--cyan); font-weight: 600; }
+  .verdict .off { color: var(--red); }
+
+  .honesty {
+    margin-top: 14px; padding: 12px 14px; border-radius: 10px;
+    background: var(--panel-2); border-left: 3px solid var(--amber);
+    font-size: 13px; line-height: 1.5; text-align: left;
+  }
+  .honesty.low-conf { border-left-color: var(--red); }
+
+  .dial-wrap { margin: 18px auto 4px; width: min(340px, 100%); position: relative; }
+  .dial-cap {
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 10px; color: var(--ink-dim);
+    margin-top: 4px; padding: 0 6px;
+  }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  @media (max-width: 540px) { .grid2 { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .card h2 {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 12px;
+  }
+  .card.full { grid-column: 1 / -1; }
+  canvas { display: block; width: 100%; }
+
+  .stat { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; font-size: 13.5px; }
+  .stat + .stat { border-top: 1px solid var(--panel-2); }
+  .stat .k { color: var(--ink-dim); }
+  .stat .v { font-family: var(--mono); font-size: 13px; }
+  .v.cy { color: var(--cyan); } .v.am { color: var(--amber); } .v.rd { color: var(--red); }
+
+  .drift-note { font-size: 12.5px; color: var(--ink-dim); margin-top: 10px; line-height: 1.5; }
+  .drift-note b { color: var(--red); font-weight: 600; }
+  .drift-note b.ok { color: var(--cyan); }
+
+  /* ── Corrección: selector de destino ── */
+  .correct-card { margin-top: 20px; }
+  .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .preset {
+    font-family: var(--mono); font-size: 13px; letter-spacing: 0.04em;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+    padding: 9px 16px; border-radius: 8px; cursor: pointer;
+  }
+  .preset:hover { border-color: var(--cyan); }
+  .preset.active { border-color: var(--amber); color: var(--amber); background: rgba(242,163,60,0.08); }
+  .preset.active:hover { border-color: var(--amber); }
+  .free-freq { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-dim); }
+  .free-freq input {
+    width: 90px; font-family: var(--mono); font-size: 13px; background: var(--panel-2);
+    border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 8px 10px;
+  }
+  .free-freq input:focus { outline: 2px solid var(--cyan); outline-offset: 1px; }
+  .shift-note { font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim); margin: 10px 0 14px; }
+  .go button {
+    font-family: var(--mono); font-size: 13px; letter-spacing: 0.06em;
+    background: var(--amber); border: none; color: #16181d; font-weight: 600;
+    padding: 11px 22px; border-radius: 8px; cursor: pointer;
+  }
+  .go button:hover { filter: brightness(1.08); }
+  .go button:disabled { opacity: 0.4; cursor: default; filter: none; }
+
+  .corrected-result { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .downloads { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .downloads a {
+    font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em;
+    border: 1px solid var(--cyan); color: var(--cyan); text-decoration: none;
+    padding: 10px 18px; border-radius: 8px;
+  }
+  .downloads a:hover { background: rgba(95,212,196,0.1); }
+
+  .again { margin-top: 20px; text-align: center; }
+  .again button {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
+    background: none; border: 1px solid var(--line); color: var(--ink);
+    padding: 10px 22px; border-radius: 8px; cursor: pointer;
+  }
+  .again button:hover { border-color: var(--cyan); color: var(--cyan); }
+  .again button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+  details { margin-top: 26px; border-top: 1px solid var(--line); padding-top: 14px; }
+  summary { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); cursor: pointer; }
+  details p { font-size: 13px; line-height: 1.65; color: var(--ink-dim); margin-top: 10px; max-width: 62ch; }
+  details p b { color: var(--ink); font-weight: 600; }
+
+  .err { display: none; margin-top: 14px; font-size: 13px; color: var(--red); font-family: var(--mono); }
+  .err.on { display: block; }
+</style>
+</head>
+<body>
+<div class="rig">
+  <header>
+    <h1>Cent<span class="num">rail</span></h1>
+    <div class="plate">Diagnóstico y corrección<br>de afinación de referencia</div>
+  </header>
+
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Cargar archivo de audio">
+    <div class="big">Suelta un archivo de audio aquí, o haz clic para elegirlo</div>
+    <div class="fmt">WAV · FLAC · MP3 · OGG · M4A — el archivo no sale de tu equipo</div>
+    <input type="file" id="file" accept="audio/*,.flac,.wav,.mp3,.ogg,.m4a">
+  </div>
+  <div class="err" id="err"></div>
+
+  <div class="progress" id="prog">
+    <div class="pbar" id="pbar"><div id="pfill"></div></div>
+    <div class="plabel" id="plabel">Decodificando…</div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="readout">
+      <div class="hz"><span id="hzval">—</span><small> Hz</small></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="dial-wrap">
+        <svg id="dial" viewBox="0 0 340 120" aria-label="Dial de desviación en cents"></svg>
+        <div class="dial-cap"><span>−50 ¢</span><span>0 ¢ = 440 Hz</span><span>+50 ¢</span></div>
+      </div>
+      <div id="honestyBox"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card full">
+        <h2>Histograma de desviación (cents respecto a la rejilla A440)</h2>
+        <canvas id="hist" height="150"></canvas>
+      </div>
+
+      <div class="card">
+        <h2>Medición</h2>
+        <div class="stat"><span class="k">Patrón detectado</span><span class="v am" id="s-ref">—</span></div>
+        <div class="stat"><span class="k">Desviación</span><span class="v am" id="s-cents">—</span></div>
+        <div class="stat"><span class="k">Incertidumbre (±)</span><span class="v" id="s-unc">—</span></div>
+        <div class="stat"><span class="k">Consistencia tonal</span><span class="v cy" id="s-conf">—</span></div>
+        <div class="stat"><span class="k">Ventanas analizadas</span><span class="v" id="s-frames">—</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Archivo</h2>
+        <div class="stat"><span class="k">Nombre</span><span class="v" id="s-name" style="max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span></div>
+        <div class="stat"><span class="k">Duración</span><span class="v" id="s-dur">—</span></div>
+        <div class="stat"><span class="k">Sample rate / bits</span><span class="v" id="s-sr">—</span></div>
+        <div class="stat"><span class="k">Canales</span><span class="v" id="s-ch">—</span></div>
+      </div>
+
+      <div class="card full">
+        <h2>Deriva a lo largo del tema (drift)</h2>
+        <canvas id="drift" height="110"></canvas>
+        <div class="drift-note" id="driftnote"></div>
+      </div>
+
+      <div class="card full correct-card">
+        <h2>Corregir a</h2>
+        <div class="presets" id="presets">
+          <button class="preset" data-hz="432">432 Hz</button>
+          <button class="preset active" data-hz="440">440 Hz</button>
+          <button class="preset" data-hz="442">442 Hz</button>
+          <button class="preset" data-hz="444">444 Hz</button>
+        </div>
+        <div class="free-freq">
+          <label for="freeHz">Valor libre</label>
+          <input type="number" id="freeHz" step="0.1" min="200" max="880" placeholder="p.ej. 435">
+          <span>Hz</span>
+        </div>
+        <div class="shift-note" id="shiftNote"></div>
+        <div class="go"><button id="goBtn">CORREGIR Y DESCARGAR</button></div>
+
+        <div class="corrected-result" id="correctedResult" style="display:none">
+          <div class="stat"><span class="k">Re-medido tras corrección</span><span class="v cy" id="c-ref">—</span></div>
+          <div class="stat"><span class="k">Desviación respecto al destino</span><span class="v cy" id="c-dev">—</span></div>
+          <div class="downloads" id="downloads"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="again"><button id="again">ANALIZAR OTRO ARCHIVO</button></div>
+  </div>
+
+  <details>
+    <summary>Cómo mide</summary>
+    <p>El detector recorre el tema tomando ventanas de audio distribuidas a lo largo de toda su duración. A cada ventana le aplica una <b>FFT con ventana de Hann</b> y refina la frecuencia de cada pico espectral con interpolación parabólica, logrando resolución muy por debajo del ancho de un bin.</p>
+    <p>Cada pico se compara contra la nota más cercana de la escala temperada afinada en <b>A = 440 Hz</b>, y su desviación en cents (módulo 100, con matemática circular) alimenta un histograma ponderado por energía. El máximo del histograma, refinado con media circular, entrega el desplazamiento global; el patrón de referencia es 440 × 2^(desviación/1200). Este método es independiente de la tonalidad del tema y no requiere separar instrumentos.</p>
+    <p>La <b>consistencia tonal</b> indica qué tan concentrado está el histograma: valores altos significan material armónico estable; valores bajos pueden indicar mucha percusión, ruido, o afinación inestable — no necesariamente una medición ambigua (ver hallazgos §3 de la especificación). El panel de <b>deriva</b> divide el tema en segmentos y estima el patrón de cada uno.</p>
+    <p>La corrección usa <b>Rubber Band</b> (modo Finer, máxima calidad) para cambiar el pitch sin alterar el tempo. Medición y corrección siempre operan sobre la <b>misma decodificación</b> del archivo — nunca se mide por un camino y se corrige por otro.</p>
+  </details>
+</div>
+
+<script type="module">
+"use strict";
+import { detectFormat } from "./engine/decode.mjs";
+
+const $ = id => document.getElementById(id);
+const drop = $("drop"), fileIn = $("file"), prog = $("prog"), pbar = $("pbar"), pfill = $("pfill"),
+      plabel = $("plabel"), result = $("result"), errBox = $("err"), goBtn = $("goBtn");
+
+let worker = null;
+let currentFileName = "";
+let lastDiagnosis = null;
+let selectedTargetHz = 440;
+
+function newWorker() {
+  if (worker) worker.terminate();
+  worker = new Worker(new URL("./workers/engine.worker.mjs", import.meta.url), { type: "module" });
+  worker.onmessage = onWorkerMessage;
+  worker.onerror = (e) => showError("Error interno del worker: " + e.message);
+  return worker;
+}
+
+// Progreso honesto (§4.3): etapa nombrada + porcentaje real + tiempo restante
+// estimado a partir de la velocidad medida en ESTA corrida (nunca inventado),
+// reiniciado en cada cambio de etapa porque decodificar/analizar/corregir/codificar
+// avanzan a velocidades muy distintas. Nunca spinner indeterminado.
+let stageName = null, stageStart = 0;
+
+function formatEta(seconds) {
+  if (!isFinite(seconds) || seconds < 0) return null;
+  if (seconds < 1) return "menos de 1 s";
+  const m = Math.floor(seconds / 60), s = Math.round(seconds % 60);
+  return m > 0 ? `${m} min ${String(s).padStart(2, "0")} s` : `${s} s`;
+}
+
+const ui = {
+  progress(p, stage) {
+    prog.classList.remove("on"); prog.classList.add("on");
+    pbar.classList.remove("error");
+    pbar.classList.toggle("done", p >= 1);
+    plabel.classList.remove("error");
+    pfill.style.width = (Math.max(0, Math.min(1, p)) * 100).toFixed(1) + "%";
+
+    if (stage !== stageName) { stageName = stage; stageStart = performance.now(); }
+    const elapsed = (performance.now() - stageStart) / 1000;
+    let etaTxt = "";
+    if (p > 0.03 && p < 0.995 && elapsed > 0.5) {
+      const eta = formatEta(elapsed * (1 - p) / p);
+      if (eta) etaTxt = ` — resta ~${eta}`;
+    }
+    const label = stage ? stage[0].toUpperCase() + stage.slice(1) : "Procesando";
+    plabel.textContent = `${label}… ${(p * 100).toFixed(0)}%${etaTxt}`;
+  },
+  error(label) {
+    prog.classList.add("on");
+    pbar.classList.add("error");
+    plabel.classList.add("error");
+    plabel.textContent = label;
+  },
+  hideProgress() { prog.classList.remove("on"); }
+};
+
+function showError(msg) {
+  errBox.textContent = msg;
+  errBox.classList.add("on");
+  ui.error("Error");
+}
+
+drop.addEventListener("click", () => fileIn.click());
+drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileIn.click(); } });
+["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) run(f); });
+fileIn.addEventListener("change", () => { if (fileIn.files[0]) run(fileIn.files[0]); });
+$("again").addEventListener("click", () => {
+  result.classList.remove("on");
+  fileIn.value = "";
+  drop.style.display = "";
+  drop.focus();
+  $("correctedResult").style.display = "none";
+  $("downloads").innerHTML = "";
+});
+
+// ── Selector de destino (presets + valor libre, §4.1) ──
+const presetsEl = $("presets"), freeHzEl = $("freeHz");
+presetsEl.addEventListener("click", e => {
+  const btn = e.target.closest(".preset");
+  if (!btn) return;
+  [...presetsEl.children].forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  selectedTargetHz = Number(btn.dataset.hz);
+  freeHzEl.value = "";
+  updateShiftNote();
+});
+freeHzEl.addEventListener("input", () => {
+  const v = Number(freeHzEl.value);
+  if (v > 0) {
+    [...presetsEl.children].forEach(b => b.classList.remove("active"));
+    selectedTargetHz = v;
+    updateShiftNote();
+  }
+});
+
+function updateShiftNote() {
+  if (!lastDiagnosis) return;
+  const shiftCents = 1200 * Math.log2(selectedTargetHz / lastDiagnosis.detectedRefHz);
+  $("shiftNote").textContent = `${lastDiagnosis.detectedRefHz.toFixed(2)} Hz → ${selectedTargetHz} Hz  (shift: ${shiftCents >= 0 ? "+" : ""}${shiftCents.toFixed(1)} ¢)`;
+}
+
+goBtn.addEventListener("click", () => {
+  if (!lastDiagnosis || !worker) return;
+  goBtn.disabled = true;
+  worker.postMessage({ cmd: "correct", targetHz: selectedTargetHz, detectedRefHz: lastDiagnosis.detectedRefHz });
+});
+
+async function run(file) {
+  errBox.classList.remove("on");
+  result.classList.remove("on");
+  $("correctedResult").style.display = "none";
+  $("downloads").innerHTML = "";
+  currentFileName = file.name;
+  ui.progress(0.01, "cargando");
+
+  const format = detectFormat(file.name);
+  if (format === "aiff" || format === "unknown") {
+    showError(`Formato no soportado en esta versión (${format}). Formatos disponibles: WAV, FLAC, MP3, OGG, M4A.`);
+    return;
+  }
+
+  const w = newWorker();
+
+  try {
+    if (format === "flac" || format === "wav") {
+      const bytes = await file.arrayBuffer();
+      w.postMessage({ cmd: "diagnose", fileName: file.name, format, bytes }, [bytes]);
+    } else {
+      // mp3/ogg/m4a: sin decodificador propio — decodeAudioData UNA vez, misma
+      // decodificación se reutiliza para medir y corregir (tubería unificada, §3).
+      ui.progress(0.05, "decodificando");
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      const arr = await file.arrayBuffer();
+      const audioBuffer = await ac.decodeAudioData(arr);
+      ac.close();
+      const channelData = [];
+      for (let c = 0; c < audioBuffer.numberOfChannels; c++) channelData.push(audioBuffer.getChannelData(c).slice());
+      const buffers = channelData.map(a => a.buffer);
+      w.postMessage(
+        { cmd: "diagnose", fileName: file.name, format, decoded: { channelData: buffers, sampleRate: audioBuffer.sampleRate, bitDepth: 32 } },
+        buffers
+      );
+    }
+    drop.style.display = "none";
+  } catch (e) {
+    showError("No se pudo cargar el archivo: " + (e && e.message ? e.message : e));
+  }
+}
+
+function onWorkerMessage(ev) {
+  const msg = ev.data;
+  if (msg.type === "progress") {
+    ui.progress(msg.pct, msg.stage);
+  } else if (msg.type === "diagnosis") {
+    ui.progress(1, "diagnóstico listo");
+    ui.hideProgress();
+    lastDiagnosis = msg;
+    render(msg, currentFileName);
+    updateShiftNote();
+  } else if (msg.type === "corrected") {
+    ui.progress(1, "corrección lista");
+    ui.hideProgress();
+    renderCorrected(msg);
+    goBtn.disabled = false;
+  } else if (msg.type === "error") {
+    showError("No se pudo procesar el archivo: " + msg.message);
+    goBtn.disabled = false;
+  }
+}
+
+function render(r, name) {
+  $("hzval").textContent = r.refHz.toFixed(2);
+  const absDev = Math.abs(r.offset);
+  const v = $("verdict");
+  if (absDev < 3) {
+    v.innerHTML = `Afinación de referencia <b>dentro del estándar A440</b> (desviación imperceptible).`;
+  } else if (absDev < 10) {
+    v.innerHTML = `Levemente <span class="off">${r.offset > 0 ? "alta" : "baja"}</span>: ${Math.abs(r.offset).toFixed(1)} cents ${r.offset > 0 ? "sobre" : "bajo"} 440 Hz.`;
+  } else {
+    v.innerHTML = `Claramente <span class="off">${r.offset > 0 ? "alta" : "baja"}</span>: ${Math.abs(r.offset).toFixed(1)} cents ${r.offset > 0 ? "sobre" : "bajo"} 440 Hz. Corregible sin alterar el tempo.`;
+  }
+
+  // Honestidad (§4.3): archivo ya afinado, o medición poco confiable.
+  const honestyBox = $("honestyBox");
+  honestyBox.innerHTML = "";
+  if (r.R < 0.15) {
+    honestyBox.innerHTML = `<div class="honesty low-conf">Consistencia tonal baja (${(r.R*100).toFixed(0)}%): esta medición <b>no es confiable</b>. Es típico en material con mucha percusión o mezcla densa — no implica que el archivo esté mal afinado, solo que el promedio global tiene más ruido de lo normal. Corregir con este dato es arriesgado.</div>`;
+  } else if (absDev < 3 && r.maxDrift < 3) {
+    honestyBox.innerHTML = `<div class="honesty">Este archivo ya está afinado al estándar; corregirlo solo puede degradarlo. El botón de corrección sigue disponible pero no es recomendable.</div>`;
+  }
+
+  $("s-ref").textContent = r.refHz.toFixed(2) + " Hz";
+  $("s-cents").textContent = (r.offset >= 0 ? "+" : "") + r.offset.toFixed(1) + " ¢";
+  $("s-unc").textContent = r.unc.toFixed(1) + " ¢";
+  const confEl = $("s-conf");
+  confEl.textContent = (r.R * 100).toFixed(0) + " %";
+  confEl.className = "v " + (r.R > 0.35 ? "cy" : r.R > 0.15 ? "am" : "rd");
+  $("s-frames").textContent = String(r.nFrames);
+  $("s-name").textContent = name;
+  $("s-name").title = name;
+  const m = Math.floor(r.durationSec / 60), s = Math.round(r.durationSec % 60);
+  $("s-dur").textContent = m + ":" + String(s).padStart(2, "0");
+  $("s-sr").textContent = (r.sampleRate / 1000).toFixed(1) + " kHz / " + r.bitDepth + "-bit";
+  $("s-ch").textContent = r.channels === 1 ? "mono" : r.channels === 2 ? "estéreo" : r.channels + " ch";
+
+  drawDial(r.offset);
+  drawHist(r.hist, r.offset);
+  drawDrift(r.segs, r.offset);
+
+  result.classList.add("on");
+}
+
+function renderCorrected(msg) {
+  $("correctedResult").style.display = "block";
+  $("c-ref").textContent = msg.after.refHz.toFixed(2) + " Hz";
+  const dev = 1200 * Math.log2(msg.after.refHz / selectedTargetHz);
+  $("c-dev").textContent = (dev >= 0 ? "+" : "") + dev.toFixed(2) + " ¢";
+
+  const dl = $("downloads");
+  dl.innerHTML = "";
+  for (const f of msg.files) {
+    const blob = new Blob([f.bytes], { type: f.mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = f.name;
+    a.textContent = "Descargar " + f.name;
+    dl.appendChild(a);
+  }
+}
+
+/* ── Dial de aguja ── */
+function drawDial(offset) {
+  const svg = $("dial");
+  const cx = 170, cy = 118, rad = 100;
+  const clamp = Math.max(-50, Math.min(50, offset));
+  const ang = -Math.PI / 2 + (clamp / 50) * (Math.PI / 3);
+  let ticks = "";
+  for (let c = -50; c <= 50; c += 10) {
+    const a = -Math.PI / 2 + (c / 50) * (Math.PI / 3);
+    const r1 = c === 0 ? rad - 16 : rad - 9;
+    ticks += tick(cx, cy, a, r1, rad, c === 0);
+  }
+  function tick(cx, cy, a, r1, r2, major) {
+    const x1 = cx + Math.sin(a) * r1, y1 = cy - Math.cos(a) * r1;
+    const x2 = cx + Math.sin(a) * r2, y2 = cy - Math.cos(a) * r2;
+    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${major ? "var(--cyan)" : "var(--line)"}" stroke-width="${major ? 2 : 1.2}"/>`;
+  }
+  const nx = cx + Math.sin(ang) * (rad - 20), ny = cy - Math.cos(ang) * (rad - 20);
+  svg.innerHTML = `
+    <path d="M ${cx - Math.sin(Math.PI/3)*rad} ${cy - Math.cos(Math.PI/3)*rad}
+             A ${rad} ${rad} 0 0 1 ${cx + Math.sin(Math.PI/3)*rad} ${cy - Math.cos(Math.PI/3)*rad}"
+          fill="none" stroke="var(--line)" stroke-width="1.5"/>
+    ${ticks}
+    <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}"
+          stroke="var(--amber)" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="5" fill="var(--amber)"/>`;
+}
+
+/* ── Histograma ── */
+function drawHist(hist, offset) {
+  const NBINS = hist.length;
+  const cv = $("hist");
+  const W = cv.clientWidth || 640, H = 150;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext("2d");
+  g.scale(dpr, dpr);
+  g.clearRect(0, 0, W, H);
+  const css = getComputedStyle(document.documentElement);
+  const cyan = css.getPropertyValue("--cyan").trim();
+  const amber = css.getPropertyValue("--amber").trim();
+  const line = css.getPropertyValue("--line").trim();
+  const dim = css.getPropertyValue("--ink-dim").trim();
+
+  let max = 0;
+  for (const v of hist) if (v > max) max = v;
+  if (max <= 0) max = 1;
+  const pad = 6, baseY = H - 18;
+  const bw = (W - pad * 2) / NBINS;
+
+  const zeroX = pad + (49.5 + 0.5) * bw;
+  g.strokeStyle = line; g.setLineDash([3, 3]);
+  g.beginPath(); g.moveTo(zeroX, 4); g.lineTo(zeroX, baseY); g.stroke();
+  g.setLineDash([]);
+
+  for (let i = 0; i < NBINS; i++) {
+    const h = (hist[i] / max) * (baseY - 10);
+    g.fillStyle = cyan;
+    g.globalAlpha = 0.9;
+    g.fillRect(pad + i * bw, baseY - h, Math.max(1, bw - 1), h);
+  }
+  g.globalAlpha = 1;
+
+  const estX = pad + (offset + 49.5 + 0.5) * bw;
+  g.strokeStyle = amber; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(estX, 2); g.lineTo(estX, baseY); g.stroke();
+
+  g.fillStyle = dim; g.font = "10px IBM Plex Mono, monospace";
+  g.textAlign = "left"; g.fillText("−50 ¢", pad, H - 4);
+  g.textAlign = "center"; g.fillText("0", zeroX, H - 4);
+  g.textAlign = "right"; g.fillText("+50 ¢", W - pad, H - 4);
+}
+
+/* ── Curva de drift ── */
+function drawDrift(segs, globalOff) {
+  const cv = $("drift");
+  const W = cv.clientWidth || 640, H = 110;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext("2d");
+  g.scale(dpr, dpr);
+  g.clearRect(0, 0, W, H);
+  const css = getComputedStyle(document.documentElement);
+  const cyan = css.getPropertyValue("--cyan").trim();
+  const amber = css.getPropertyValue("--amber").trim();
+  const line = css.getPropertyValue("--line").trim();
+  const dim = css.getPropertyValue("--ink-dim").trim();
+
+  const valid = segs.filter(s => s);
+  let span = 5;
+  for (const s of valid) span = Math.max(span, Math.abs(s.off - globalOff) * 1.4);
+  span = Math.min(span, 50);
+  const padL = 44, padR = 10, padT = 10, padB = 20;
+  const y = off => padT + (1 - ((off - globalOff) + span) / (2 * span)) * (H - padT - padB);
+  const x = i => padL + (i + 0.5) / segs.length * (W - padL - padR);
+
+  g.strokeStyle = line; g.setLineDash([3, 3]);
+  g.beginPath(); g.moveTo(padL, y(globalOff)); g.lineTo(W - padR, y(globalOff)); g.stroke();
+  g.setLineDash([]);
+  g.fillStyle = dim; g.font = "10px IBM Plex Mono, monospace"; g.textAlign = "left";
+  g.fillText((globalOff >= 0 ? "+" : "") + globalOff.toFixed(1) + "¢", 4, y(globalOff) + 3);
+  g.fillText("+" + span.toFixed(0) + "¢", 4, padT + 4);
+  g.fillText("−" + span.toFixed(0) + "¢", 4, H - padB);
+
+  g.strokeStyle = amber; g.lineWidth = 1.6;
+  g.beginPath();
+  let started = false;
+  segs.forEach((s, i) => {
+    if (!s) return;
+    const px = x(i), py = y(s.off);
+    if (!started) { g.moveTo(px, py); started = true; } else g.lineTo(px, py);
+  });
+  g.stroke();
+  segs.forEach((s, i) => {
+    if (!s) return;
+    g.fillStyle = s.R > 0.2 ? cyan : dim;
+    g.beginPath(); g.arc(x(i), y(s.off), 3.2, 0, Math.PI * 2); g.fill();
+  });
+
+  g.fillStyle = dim; g.textAlign = "center";
+  g.fillText("inicio", x(0), H - 6);
+  g.fillText("final", x(segs.length - 1), H - 6);
+
+  let maxDrift = 0;
+  for (const s of valid) maxDrift = Math.max(maxDrift, Math.abs(s.off - globalOff));
+  const note = $("driftnote");
+  if (maxDrift < 3) {
+    note.innerHTML = `Deriva máxima: <b class="ok">${maxDrift.toFixed(1)} ¢</b> — la afinación es estable a lo largo del tema. Una corrección global basta.`;
+  } else if (maxDrift < 10) {
+    note.innerHTML = `Deriva máxima: <b>${maxDrift.toFixed(1)} ¢</b> — hay variación leve durante el tema (típico de grabaciones en cinta). Una corrección global deja el promedio en el destino, pero algunos pasajes quedarán levemente desviados.`;
+  } else {
+    note.innerHTML = `Deriva máxima: <b>${maxDrift.toFixed(1)} ¢</b> — la afinación se mueve de forma audible durante el tema. Esto requeriría corrección por tramos (fuera de esta versión).`;
+  }
+}
+</script>
+</body>
+</html>

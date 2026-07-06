@@ -19,11 +19,14 @@ export async function loadRubberBand(wasmModule) {
 
 /**
  * Cambia el pitch de un buffer multicanal sin alterar su duración (timeRatio = 1 por defecto).
+ * Procesa por chunks (tamaño preferido de Rubber Band) y cede el hilo periódicamente para
+ * poder reportar progreso real (§4.3 "progreso honesto") sin trabar el worker.
  * @param {RubberBandInterface} rbApi
  * @param {{channelData: Float32Array[], sampleRate: number, pitchScale: number, timeRatio?: number, options?: number}} input
- * @returns {{channelData: Float32Array[]}}
+ * @param {(p: number, stage: 'study'|'process') => void} [onProgress]
+ * @returns {Promise<{channelData: Float32Array[]}>}
  */
-export function pitchShiftOffline(rbApi, { channelData, sampleRate, pitchScale, timeRatio = 1, options = DEFAULT_OPTIONS }) {
+export async function pitchShiftOffline(rbApi, { channelData, sampleRate, pitchScale, timeRatio = 1, options = DEFAULT_OPTIONS }, onProgress) {
   const channels = channelData.length;
   const inputLength = channelData[0].length;
   const outputSamples = Math.round(inputLength * timeRatio);
@@ -58,19 +61,26 @@ export function pitchShiftOffline(rbApi, { channelData, sampleRate, pitchScale, 
     return write;
   };
 
+  const yieldToEventLoop = () => new Promise(r => setTimeout(r, 0));
+
   // 1) study: pasada de análisis previa (mejora calidad del stretch/pitch offline)
-  let read = 0;
+  let read = 0, chunk = 0;
   while (read < inputLength) {
     channelData.forEach((buf, c) => rbApi.memWrite(channelDataPtr[c], buf.subarray(read, read + samplesRequired)));
     const remaining = Math.min(samplesRequired, inputLength - read);
     read += remaining;
     const isFinal = read < inputLength ? 0 : 1;
     rbApi.rubberband_study(rbState, channelArrayPtr, remaining, isFinal);
+    if (onProgress && ((chunk++ & 15) === 15 || read >= inputLength)) {
+      onProgress(read / inputLength, "study");
+      await yieldToEventLoop();
+    }
   }
 
   // 2) process + retrieve
   read = 0;
   let write = 0;
+  chunk = 0;
   while (read < inputLength) {
     channelData.forEach((buf, c) => rbApi.memWrite(channelDataPtr[c], buf.subarray(read, read + samplesRequired)));
     const remaining = Math.min(samplesRequired, inputLength - read);
@@ -78,6 +88,10 @@ export function pitchShiftOffline(rbApi, { channelData, sampleRate, pitchScale, 
     const isFinal = read < inputLength ? 0 : 1;
     rbApi.rubberband_process(rbState, channelArrayPtr, remaining, isFinal);
     write = tryRetrieve(write, false);
+    if (onProgress && ((chunk++ & 15) === 15 || read >= inputLength)) {
+      onProgress(read / inputLength, "process");
+      await yieldToEventLoop();
+    }
   }
   tryRetrieve(write, true);
 
