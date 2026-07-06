@@ -1,7 +1,7 @@
 # Centrail — Especificación del proyecto
 
 **Marca paraguas:** TrainMusiq · **Producto (vagón 1):** Centrail — diagnóstico y corrección de afinación de referencia
-**Versión:** 1.6 · Julio 2026
+**Versión:** 1.7 · Julio 2026
 **Autor:** Juanma (Punta Arenas) con Claude
 **Estado:** Prototipo 1 validado. Este documento es el traspaso a la fase de construcción en Claude Code y el norte anti-dispersión del proyecto completo.
 
@@ -73,6 +73,7 @@ Nota de contexto (investigado julio 2026): para pitch monofónico neural existen
 2. Si |desviación| < umbral perceptible (~3 ¢) y drift bajo: mensaje explícito **"este archivo ya está afinado al estándar; corregirlo solo puede degradarlo"**. El botón de corregir queda disponible pero desaconsejado.
 3. Si corresponde corregir: elegir destino (presets + libre), previsualización A/B (reproducir original vs. corregido de un segmento), luego procesar y descargar.
 4. Consistencia tonal baja → advertir que la medición no es confiable en vez de entregar un número con falsa seguridad.
+5. **Progreso honesto (principio de la casa, mismo espíritu que el diagnóstico):** todo procesamiento muestra progreso REAL — barra con porcentaje verdadero (chunks procesados/total), etapa nombrada (Decodificando / Analizando / Corrigiendo / Codificando) y tiempo restante estimado. Nunca spinner indeterminado. Estados con color de la identidad (§8): ámbar = en progreso, cian = listo, rojo = error con mensaje en lenguaje humano (qué pasó y qué hacer), advertencia = avisos de honestidad (archivo ya afinado, medición no confiable). La app nunca oculta su estado real al usuario. ("Esperando conexión" no existe en la etapa 1 — no hay servidor; se incorpora como estado recién con los tiers de la etapa 2+.)
 
 ### 4.4 Definición de "terminado" para v1 (release)
 
