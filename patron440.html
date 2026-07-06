@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patrón 440 — Detector de afinación de referencia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ── Tokens: estética de instrumento de banco de pruebas ──
+     fondo grafito, tinta cálida serigrafiada, ámbar de aguja VU,
+     cian de traza de osciloscopio */
+  :root {
+    --bg: #16181d;
+    --panel: #1e2128;
+    --panel-2: #24272f;
+    --line: #33373f;
+    --ink: #e9e5d9;
+    --ink-dim: #9a968c;
+    --amber: #f2a33c;
+    --cyan: #5fd4c4;
+    --red: #e06a5a;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "Archivo", -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 28px 16px 64px;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, #21242c 0%, transparent 60%);
+  }
+  .rig { max-width: 720px; margin: 0 auto; }
+
+  /* ── Cabecera tipo placa de equipo ── */
+  header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px; margin-bottom: 22px;
+  }
+  h1 {
+    font-size: 20px; font-weight: 600; letter-spacing: 0.04em;
+  }
+  h1 .num { color: var(--amber); font-family: var(--mono); font-weight: 500; }
+  .plate {
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink-dim);
+    letter-spacing: 0.12em; text-transform: uppercase; text-align: right;
+  }
+
+  /* ── Zona de carga ── */
+  .drop {
+    border: 1.5px dashed var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+    padding: 42px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .drop:hover, .drop.over { border-color: var(--cyan); background: var(--panel-2); }
+  .drop:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+  .drop .big { font-size: 15.5px; margin-bottom: 6px; }
+  .drop .fmt { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); letter-spacing: 0.06em; }
+  input[type=file] { display: none; }
+
+  /* ── Progreso ── */
+  .progress { display: none; margin-top: 18px; }
+  .progress.on { display: block; }
+  .pbar {
+    height: 4px; background: var(--panel-2); border-radius: 2px; overflow: hidden;
+  }
+  .pbar > div { height: 100%; width: 0%; background: var(--cyan); transition: width .12s linear; }
+  .plabel { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); margin-top: 8px; }
+
+  /* ── Resultado ── */
+  .result { display: none; margin-top: 26px; }
+  .result.on { display: block; animation: rise .35s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .result.on { animation: none; } }
+
+  .readout {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 26px 22px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .readout::before {
+    /* trama sutil de rejilla de osciloscopio */
+    content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px; opacity: 0.12; pointer-events: none;
+  }
+  .hz {
+    font-family: var(--mono);
+    font-size: clamp(44px, 11vw, 68px);
+    font-weight: 500;
+    color: var(--amber);
+    line-height: 1;
+    text-shadow: 0 0 24px rgba(242,163,60,0.25);
+    position: relative;
+  }
+  .hz small { font-size: 0.38em; color: var(--ink-dim); font-weight: 400; }
+  .verdict { margin-top: 10px; font-size: 14px; position: relative; }
+  .verdict b { color: var(--cyan); font-weight: 600; }
+  .verdict .off { color: var(--red); }
+
+  /* ── Dial de aguja (elemento firma) ── */
+  .dial-wrap { margin: 18px auto 4px; width: min(340px, 100%); position: relative; }
+  .dial-cap {
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 10px; color: var(--ink-dim);
+    margin-top: 4px; padding: 0 6px;
+  }
+
+  /* ── Paneles de datos ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  @media (max-width: 540px) { .grid2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 16px 18px;
+  }
+  .card h2 {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-dim); margin-bottom: 12px;
+  }
+  .card.full { grid-column: 1 / -1; }
+  canvas { display: block; width: 100%; }
+
+  .stat { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; font-size: 13.5px; }
+  .stat + .stat { border-top: 1px solid var(--panel-2); }
+  .stat .k { color: var(--ink-dim); }
+  .stat .v { font-family: var(--mono); font-size: 13px; }
+  .v.cy { color: var(--cyan); } .v.am { color: var(--amber); } .v.rd { color: var(--red); }
+
+  .drift-note { font-size: 12.5px; color: var(--ink-dim); margin-top: 10px; line-height: 1.5; }
+  .drift-note b { color: var(--red); font-weight: 600; }
+  .drift-note b.ok { color: var(--cyan); }
+
+  .again {
+    margin-top: 20px; text-align: center;
+  }
+  .again button {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
+    background: none; border: 1px solid var(--line); color: var(--ink);
+    padding: 10px 22px; border-radius: 8px; cursor: pointer;
+  }
+  .again button:hover { border-color: var(--cyan); color: var(--cyan); }
+  .again button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+  details { margin-top: 26px; border-top: 1px solid var(--line); padding-top: 14px; }
+  summary { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); cursor: pointer; }
+  details p { font-size: 13px; line-height: 1.65; color: var(--ink-dim); margin-top: 10px; max-width: 62ch; }
+  details p b { color: var(--ink); font-weight: 600; }
+
+  .err { display: none; margin-top: 14px; font-size: 13px; color: var(--red); font-family: var(--mono); }
+  .err.on { display: block; }
+</style>
+</head>
+<body>
+<div class="rig">
+  <header>
+    <h1>Patrón <span class="num">440</span></h1>
+    <div class="plate">Detector de afinación<br>de referencia · prototipo 1</div>
+  </header>
+
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Cargar archivo de audio">
+    <div class="big">Suelta un archivo de audio aquí, o haz clic para elegirlo</div>
+    <div class="fmt">WAV · FLAC · MP3 · OGG — el archivo no sale de tu equipo</div>
+    <input type="file" id="file" accept="audio/*,.flac,.wav,.mp3,.ogg,.m4a">
+  </div>
+  <div class="err" id="err"></div>
+
+  <div class="progress" id="prog">
+    <div class="pbar"><div id="pfill"></div></div>
+    <div class="plabel" id="plabel">Decodificando…</div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="readout">
+      <div class="hz"><span id="hzval">—</span><small> Hz</small></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="dial-wrap">
+        <svg id="dial" viewBox="0 0 340 120" aria-label="Dial de desviación en cents"></svg>
+        <div class="dial-cap"><span>−50 ¢</span><span>0 ¢ = 440 Hz</span><span>+50 ¢</span></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card full">
+        <h2>Histograma de desviación (cents respecto a la rejilla A440)</h2>
+        <canvas id="hist" height="150"></canvas>
+      </div>
+
+      <div class="card">
+        <h2>Medición</h2>
+        <div class="stat"><span class="k">Patrón detectado</span><span class="v am" id="s-ref">—</span></div>
+        <div class="stat"><span class="k">Desviación</span><span class="v am" id="s-cents">—</span></div>
+        <div class="stat"><span class="k">Incertidumbre (±)</span><span class="v" id="s-unc">—</span></div>
+        <div class="stat"><span class="k">Consistencia tonal</span><span class="v cy" id="s-conf">—</span></div>
+        <div class="stat"><span class="k">Ventanas analizadas</span><span class="v" id="s-frames">—</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Archivo</h2>
+        <div class="stat"><span class="k">Nombre</span><span class="v" id="s-name" style="max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span></div>
+        <div class="stat"><span class="k">Duración</span><span class="v" id="s-dur">—</span></div>
+        <div class="stat"><span class="k">Sample rate</span><span class="v" id="s-sr">—</span></div>
+        <div class="stat"><span class="k">Canales</span><span class="v" id="s-ch">—</span></div>
+      </div>
+
+      <div class="card full">
+        <h2>Deriva a lo largo del tema (drift)</h2>
+        <canvas id="drift" height="110"></canvas>
+        <div class="drift-note" id="driftnote"></div>
+      </div>
+    </div>
+
+    <div class="again"><button id="again">ANALIZAR OTRO ARCHIVO</button></div>
+  </div>
+
+  <details>
+    <summary>Cómo mide</summary>
+    <p>El detector recorre el tema tomando ventanas de audio distribuidas a lo largo de toda su duración. A cada ventana le aplica una <b>FFT con ventana de Hann</b> y refina la frecuencia de cada pico espectral con interpolación parabólica, logrando resolución muy por debajo del ancho de un bin.</p>
+    <p>Cada pico se compara contra la nota más cercana de la escala temperada afinada en <b>A = 440 Hz</b>, y su desviación en cents (módulo 100, con matemática circular) alimenta un histograma ponderado por energía. El máximo del histograma, refinado con media circular, entrega el desplazamiento global; el patrón de referencia es 440 × 2^(desviación/1200). Este método es independiente de la tonalidad del tema y no requiere separar instrumentos.</p>
+    <p>La <b>consistencia tonal</b> indica qué tan concentrado está el histograma: valores altos significan material armónico estable; valores bajos pueden indicar mucha percusión, ruido, o afinación inestable. El panel de <b>deriva</b> divide el tema en segmentos y estima el patrón de cada uno: en grabaciones de cinta antiguas es común que la afinación se mueva durante la canción.</p>
+  </details>
+</div>
+
+<script>
+"use strict";
+
+/* ────────────────────────── FFT radix-2 iterativa ────────────────────────── */
+function makeFFT(n) {
+  const levels = Math.log2(n) | 0;
+  if (1 << levels !== n) throw new Error("FFT size must be power of 2");
+  const cosT = new Float64Array(n / 2), sinT = new Float64Array(n / 2);
+  for (let i = 0; i < n / 2; i++) {
+    cosT[i] = Math.cos(2 * Math.PI * i / n);
+    sinT[i] = Math.sin(2 * Math.PI * i / n);
+  }
+  const rev = new Uint32Array(n);
+  for (let i = 0; i < n; i++) {
+    let r = 0;
+    for (let j = 0; j < levels; j++) r = (r << 1) | ((i >>> j) & 1);
+    rev[i] = r;
+  }
+  return function fft(re, im) {
+    for (let i = 0; i < n; i++) {
+      const j = rev[i];
+      if (j > i) {
+        let t = re[i]; re[i] = re[j]; re[j] = t;
+        t = im[i]; im[i] = im[j]; im[j] = t;
+      }
+    }
+    for (let size = 2; size <= n; size <<= 1) {
+      const half = size >> 1, step = n / size;
+      for (let i = 0; i < n; i += size) {
+        for (let j = i, k = 0; j < i + half; j++, k += step) {
+          const l = j + half;
+          const tre = re[l] * cosT[k] + im[l] * sinT[k];
+          const tim = -re[l] * sinT[k] + im[l] * cosT[k];
+          re[l] = re[j] - tre; im[l] = im[j] - tim;
+          re[j] += tre; im[j] += tim;
+        }
+      }
+    }
+  };
+}
+
+/* ────────────────────────── Análisis ────────────────────────── */
+const FFT_N = 32768;
+const MAX_FRAMES = 240;          // ventanas repartidas por todo el tema
+const FMIN = 55, FMAX = 5000;    // rango útil para material armónico
+const NBINS = 100;               // 1 bin = 1 cent
+const SEGMENTS = 10;             // para la curva de drift
+
+const fft = makeFFT(FFT_N);
+const hann = new Float64Array(FFT_N);
+for (let i = 0; i < FFT_N; i++) hann[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (FFT_N - 1));
+
+function analyzeFrame(mono, start, sr, sink) {
+  const re = new Float64Array(FFT_N), im = new Float64Array(FFT_N);
+  for (let i = 0; i < FFT_N; i++) re[i] = mono[start + i] * hann[i];
+  fft(re, im);
+  const half = FFT_N >> 1;
+  const mag = new Float64Array(half);
+  let maxMag = 0;
+  for (let i = 1; i < half; i++) {
+    const m = Math.hypot(re[i], im[i]);
+    mag[i] = m;
+    if (m > maxMag) maxMag = m;
+  }
+  if (maxMag <= 0) return;
+  const thr = maxMag * 0.002;
+  const binHz = sr / FFT_N;
+  const iMin = Math.max(2, Math.ceil(FMIN / binHz));
+  const iMax = Math.min(half - 2, Math.floor(FMAX / binHz));
+  for (let i = iMin; i <= iMax; i++) {
+    const m = mag[i];
+    if (m < thr || m <= mag[i - 1] || m < mag[i + 1]) continue;
+    // interpolación parabólica sobre magnitud logarítmica
+    const a = Math.log(mag[i - 1] + 1e-12), b = Math.log(m + 1e-12), c = Math.log(mag[i + 1] + 1e-12);
+    const denom = a - 2 * b + c;
+    let p = denom !== 0 ? 0.5 * (a - c) / denom : 0;
+    if (p > 0.5) p = 0.5; else if (p < -0.5) p = -0.5;
+    const f = (i + p) * binHz;
+    // desviación en cents respecto a la rejilla temperada A440, en (-50, 50]
+    const cents = 1200 * Math.log2(f / 440);
+    let dev = ((cents % 100) + 150) % 100 - 50;
+    const w = Math.sqrt(m / maxMag);   // compresión: que un pico no domine todo
+    sink(dev, w);
+  }
+}
+
+function circularEstimate(hist, sumSin, sumCos, totalW) {
+  // 1) peak del histograma  2) refinamiento con media circular local ±15¢
+  let peak = 0, peakVal = -1;
+  for (let i = 0; i < NBINS; i++) if (hist[i] > peakVal) { peakVal = hist[i]; peak = i; }
+  const peakDev = peak - 49.5;
+  let s = 0, c = 0, w = 0;
+  for (let i = 0; i < NBINS; i++) {
+    const dev = i - 49.5;
+    let d = dev - peakDev;
+    d = ((d % 100) + 150) % 100 - 50;
+    if (Math.abs(d) <= 15) {
+      const th = 2 * Math.PI * dev / 100;
+      s += hist[i] * Math.sin(th);
+      c += hist[i] * Math.cos(th);
+      w += hist[i];
+    }
+  }
+  const offset = Math.atan2(s, c) / (2 * Math.PI) * 100;
+  // consistencia global: largo del vector resultante de TODO el histograma
+  const R = totalW > 0 ? Math.hypot(sumSin, sumCos) / totalW : 0;
+  return { offset, R };
+}
+
+async function analyze(buffer, ui) {
+  const sr = buffer.sampleRate;
+  const ch = buffer.numberOfChannels;
+  const len = buffer.length;
+  // downmix a mono
+  const mono = new Float32Array(len);
+  for (let c = 0; c < ch; c++) {
+    const d = buffer.getChannelData(c);
+    for (let i = 0; i < len; i++) mono[i] += d[i] / ch;
+  }
+
+  const usable = len - FFT_N;
+  if (usable < 0) throw new Error("El archivo es demasiado corto para analizar.");
+  const nFrames = Math.min(MAX_FRAMES, Math.max(8, Math.floor(usable / (FFT_N / 2))));
+  const hop = usable / Math.max(1, nFrames - 1);
+
+  const hist = new Float64Array(NBINS);
+  let sumSin = 0, sumCos = 0, totalW = 0;
+  const segHist = Array.from({ length: SEGMENTS }, () => ({ s: 0, c: 0, w: 0 }));
+
+  for (let f = 0; f < nFrames; f++) {
+    const start = Math.min(usable, Math.round(f * hop));
+    const seg = Math.min(SEGMENTS - 1, Math.floor(start / len * SEGMENTS));
+    analyzeFrame(mono, start, sr, (dev, w) => {
+      let bin = Math.round(dev + 49.5);
+      if (bin < 0) bin = 0; if (bin >= NBINS) bin = NBINS - 1;
+      hist[bin] += w;
+      const th = 2 * Math.PI * dev / 100;
+      sumSin += w * Math.sin(th); sumCos += w * Math.cos(th); totalW += w;
+      const S = segHist[seg];
+      S.s += w * Math.sin(th); S.c += w * Math.cos(th); S.w += w;
+    });
+    if ((f & 7) === 7 || f === nFrames - 1) {
+      ui.progress(0.15 + 0.85 * (f + 1) / nFrames, `Analizando espectro… ventana ${f + 1} de ${nFrames}`);
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+
+  const { offset, R } = circularEstimate(hist, sumSin, sumCos, totalW);
+  const refHz = 440 * Math.pow(2, offset / 1200);
+
+  // incertidumbre aproximada: dispersión circular local → error estándar heurístico
+  const disp = Math.sqrt(Math.max(0, -2 * Math.log(Math.max(1e-6, R)))) * 100 / (2 * Math.PI);
+  const unc = Math.max(0.1, Math.min(25, disp / Math.sqrt(Math.max(1, nFrames))));
+
+  const segs = segHist.map(S => {
+    if (S.w <= 0) return null;
+    const dev = Math.atan2(S.s, S.c) / (2 * Math.PI) * 100;
+    let d = dev - offset;
+    d = ((d % 100) + 150) % 100 - 50;   // relativo al global, circular
+    return { off: offset + d, R: Math.hypot(S.s, S.c) / S.w };
+  });
+
+  return { refHz, offset, R, unc, hist, nFrames, segs, sr, ch, dur: len / sr };
+}
+
+/* ────────────────────────── UI ────────────────────────── */
+const $ = id => document.getElementById(id);
+const drop = $("drop"), fileIn = $("file"), prog = $("prog"), pfill = $("pfill"),
+      plabel = $("plabel"), result = $("result"), errBox = $("err");
+
+const ui = {
+  progress(p, label) {
+    pfill.style.width = (p * 100).toFixed(1) + "%";
+    if (label) plabel.textContent = label;
+  }
+};
+
+drop.addEventListener("click", () => fileIn.click());
+drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileIn.click(); } });
+["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) run(f); });
+fileIn.addEventListener("change", () => { if (fileIn.files[0]) run(fileIn.files[0]); });
+$("again").addEventListener("click", () => {
+  result.classList.remove("on");
+  fileIn.value = "";
+  drop.style.display = "";
+  drop.focus();
+});
+
+async function run(file) {
+  errBox.classList.remove("on");
+  result.classList.remove("on");
+  prog.classList.add("on");
+  ui.progress(0.02, "Decodificando " + file.name + "…");
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const arr = await file.arrayBuffer();
+    ui.progress(0.08, "Decodificando audio…");
+    const buffer = await ac.decodeAudioData(arr);
+    ac.close();
+    const res = await analyze(buffer, ui);
+    render(res, file.name);
+    drop.style.display = "none";
+  } catch (e) {
+    errBox.textContent = "No se pudo analizar el archivo: " + (e && e.message ? e.message : e) +
+      ". Verifica que el formato sea compatible con tu navegador.";
+    errBox.classList.add("on");
+  } finally {
+    prog.classList.remove("on");
+    ui.progress(0, "");
+  }
+}
+
+function render(r, name) {
+  $("hzval").textContent = r.refHz.toFixed(2);
+  const absDev = Math.abs(r.offset);
+  const v = $("verdict");
+  if (absDev < 3) {
+    v.innerHTML = `Afinación de referencia <b>dentro del estándar A440</b> (desviación imperceptible).`;
+  } else if (absDev < 10) {
+    v.innerHTML = `Levemente <span class="off">${r.offset > 0 ? "alta" : "baja"}</span>: ${Math.abs(r.offset).toFixed(1)} cents ${r.offset > 0 ? "sobre" : "bajo"} 440 Hz.`;
+  } else {
+    v.innerHTML = `Claramente <span class="off">${r.offset > 0 ? "alta" : "baja"}</span>: ${Math.abs(r.offset).toFixed(1)} cents ${r.offset > 0 ? "sobre" : "bajo"} 440 Hz. Corregible sin alterar el tempo.`;
+  }
+
+  $("s-ref").textContent = r.refHz.toFixed(2) + " Hz";
+  $("s-cents").textContent = (r.offset >= 0 ? "+" : "") + r.offset.toFixed(1) + " ¢";
+  $("s-unc").textContent = r.unc.toFixed(1) + " ¢";
+  const confEl = $("s-conf");
+  confEl.textContent = (r.R * 100).toFixed(0) + " %";
+  confEl.className = "v " + (r.R > 0.35 ? "cy" : r.R > 0.15 ? "am" : "rd");
+  $("s-frames").textContent = String(r.nFrames);
+  $("s-name").textContent = name;
+  $("s-name").title = name;
+  const m = Math.floor(r.dur / 60), s = Math.round(r.dur % 60);
+  $("s-dur").textContent = m + ":" + String(s).padStart(2, "0");
+  $("s-sr").textContent = (r.sr / 1000).toFixed(1) + " kHz";
+  $("s-ch").textContent = r.ch === 1 ? "mono" : r.ch === 2 ? "estéreo" : r.ch + " ch";
+
+  drawDial(r.offset);
+  drawHist(r.hist, r.offset);
+  drawDrift(r.segs, r.offset);
+
+  result.classList.add("on");
+}
+
+/* ── Dial de aguja ── */
+function drawDial(offset) {
+  const svg = $("dial");
+  const cx = 170, cy = 118, rad = 100;
+  const clamp = Math.max(-50, Math.min(50, offset));
+  const ang = -Math.PI / 2 + (clamp / 50) * (Math.PI / 3); // ±60° de recorrido
+  let ticks = "";
+  for (let c = -50; c <= 50; c += 10) {
+    const a = -Math.PI / 2 + (c / 50) * (Math.PI / 3);
+    const r1 = c === 0 ? rad - 16 : rad - 9;
+    ticks += tick(cx, cy, a, r1, rad, c === 0);
+  }
+  function tick(cx, cy, a, r1, r2, major) {
+    const x1 = cx + Math.sin(a) * r1, y1 = cy - Math.cos(a) * r1;
+    const x2 = cx + Math.sin(a) * r2, y2 = cy - Math.cos(a) * r2;
+    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${major ? "var(--cyan)" : "var(--line)"}" stroke-width="${major ? 2 : 1.2}"/>`;
+  }
+  const nx = cx + Math.sin(ang) * (rad - 20), ny = cy - Math.cos(ang) * (rad - 20);
+  svg.innerHTML = `
+    <path d="M ${cx - Math.sin(Math.PI/3)*rad} ${cy - Math.cos(Math.PI/3)*rad}
+             A ${rad} ${rad} 0 0 1 ${cx + Math.sin(Math.PI/3)*rad} ${cy - Math.cos(Math.PI/3)*rad}"
+          fill="none" stroke="var(--line)" stroke-width="1.5"/>
+    ${ticks}
+    <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}"
+          stroke="var(--amber)" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="5" fill="var(--amber)"/>`;
+}
+
+/* ── Histograma ── */
+function drawHist(hist, offset) {
+  const cv = $("hist");
+  const W = cv.clientWidth || 640, H = 150;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext("2d");
+  g.scale(dpr, dpr);
+  g.clearRect(0, 0, W, H);
+  const css = getComputedStyle(document.documentElement);
+  const cyan = css.getPropertyValue("--cyan").trim();
+  const amber = css.getPropertyValue("--amber").trim();
+  const line = css.getPropertyValue("--line").trim();
+  const dim = css.getPropertyValue("--ink-dim").trim();
+
+  let max = 0;
+  for (const v of hist) if (v > max) max = v;
+  if (max <= 0) max = 1;
+  const pad = 6, baseY = H - 18;
+  const bw = (W - pad * 2) / NBINS;
+
+  // línea de cero cents
+  const zeroX = pad + (49.5 + 0.5) * bw;
+  g.strokeStyle = line; g.setLineDash([3, 3]);
+  g.beginPath(); g.moveTo(zeroX, 4); g.lineTo(zeroX, baseY); g.stroke();
+  g.setLineDash([]);
+
+  for (let i = 0; i < NBINS; i++) {
+    const h = (hist[i] / max) * (baseY - 10);
+    g.fillStyle = cyan;
+    g.globalAlpha = 0.9;
+    g.fillRect(pad + i * bw, baseY - h, Math.max(1, bw - 1), h);
+  }
+  g.globalAlpha = 1;
+
+  // marcador del estimado
+  const estX = pad + (offset + 49.5 + 0.5) * bw;
+  g.strokeStyle = amber; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(estX, 2); g.lineTo(estX, baseY); g.stroke();
+
+  g.fillStyle = dim; g.font = "10px IBM Plex Mono, monospace";
+  g.textAlign = "left"; g.fillText("−50 ¢", pad, H - 4);
+  g.textAlign = "center"; g.fillText("0", zeroX, H - 4);
+  g.textAlign = "right"; g.fillText("+50 ¢", W - pad, H - 4);
+}
+
+/* ── Curva de drift ── */
+function drawDrift(segs, globalOff) {
+  const cv = $("drift");
+  const W = cv.clientWidth || 640, H = 110;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext("2d");
+  g.scale(dpr, dpr);
+  g.clearRect(0, 0, W, H);
+  const css = getComputedStyle(document.documentElement);
+  const cyan = css.getPropertyValue("--cyan").trim();
+  const amber = css.getPropertyValue("--amber").trim();
+  const line = css.getPropertyValue("--line").trim();
+  const dim = css.getPropertyValue("--ink-dim").trim();
+
+  const valid = segs.filter(s => s);
+  let span = 5;
+  for (const s of valid) span = Math.max(span, Math.abs(s.off - globalOff) * 1.4);
+  span = Math.min(span, 50);
+  const padL = 44, padR = 10, padT = 10, padB = 20;
+  const y = off => padT + (1 - ((off - globalOff) + span) / (2 * span)) * (H - padT - padB);
+  const x = i => padL + (i + 0.5) / segs.length * (W - padL - padR);
+
+  // eje del global
+  g.strokeStyle = line; g.setLineDash([3, 3]);
+  g.beginPath(); g.moveTo(padL, y(globalOff)); g.lineTo(W - padR, y(globalOff)); g.stroke();
+  g.setLineDash([]);
+  g.fillStyle = dim; g.font = "10px IBM Plex Mono, monospace"; g.textAlign = "left";
+  g.fillText((globalOff >= 0 ? "+" : "") + globalOff.toFixed(1) + "¢", 4, y(globalOff) + 3);
+  g.fillText("+" + span.toFixed(0) + "¢", 4, padT + 4);
+  g.fillText("−" + span.toFixed(0) + "¢", 4, H - padB);
+
+  // línea + puntos
+  g.strokeStyle = amber; g.lineWidth = 1.6;
+  g.beginPath();
+  let started = false;
+  segs.forEach((s, i) => {
+    if (!s) return;
+    const px = x(i), py = y(s.off);
+    if (!started) { g.moveTo(px, py); started = true; } else g.lineTo(px, py);
+  });
+  g.stroke();
+  segs.forEach((s, i) => {
+    if (!s) return;
+    g.fillStyle = s.R > 0.2 ? cyan : dim;
+    g.beginPath(); g.arc(x(i), y(s.off), 3.2, 0, Math.PI * 2); g.fill();
+  });
+
+  g.fillStyle = dim; g.textAlign = "center";
+  g.fillText("inicio", x(0), H - 6);
+  g.fillText("final", x(segs.length - 1), H - 6);
+
+  // veredicto de drift
+  let maxDrift = 0;
+  for (const s of valid) maxDrift = Math.max(maxDrift, Math.abs(s.off - globalOff));
+  const note = $("driftnote");
+  if (maxDrift < 3) {
+    note.innerHTML = `Deriva máxima: <b class="ok">${maxDrift.toFixed(1)} ¢</b> — la afinación es estable a lo largo del tema. Una corrección global basta.`;
+  } else if (maxDrift < 10) {
+    note.innerHTML = `Deriva máxima: <b>${maxDrift.toFixed(1)} ¢</b> — hay variación leve durante el tema (típico de grabaciones en cinta). Una corrección global deja el promedio en 440, pero algunos pasajes quedarán levemente desviados.`;
+  } else {
+    note.innerHTML = `Deriva máxima: <b>${maxDrift.toFixed(1)} ¢</b> — la afinación se mueve de forma audible durante el tema. Esto requiere corrección por tramos, no un ajuste global único.`;
+  }
+}
+</script>
+</body>
+</html>
