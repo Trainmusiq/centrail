@@ -21,11 +21,24 @@ function loadFlac() {
  * @param {{channelData: Float32Array[], sampleRate: number, bitDepth?: 16|24, compressionLevel?: number}} input
  * @returns {Promise<Uint8Array>}
  */
-export async function encodeFlac({ channelData, sampleRate, bitDepth = 16, compressionLevel = 5 }) {
+export async function encodeFlac(input) {
+  const Flac = await loadFlac();
+  return encodeFlacWith(Flac, input);
+}
+
+/**
+ * Igual que encodeFlac(), pero con un objeto Flac ya cargado — para poder
+ * inyectar un loader distinto del navegador (ej. en tests de Node, donde el
+ * wrapper vendorizado necesita un shim de CommonJS en vez de fetch/import
+ * dinámico). La lógica de codificación es la misma en ambos casos.
+ * @param {*} Flac
+ * @param {{channelData: Float32Array[], sampleRate: number, bitDepth?: 16|24, compressionLevel?: number}} input
+ * @returns {Uint8Array}
+ */
+export function encodeFlacWith(Flac, { channelData, sampleRate, bitDepth = 16, compressionLevel = 5 }) {
   if (bitDepth !== 16 && bitDepth !== 24) {
     throw new Error(`Bit depth FLAC no soportado para exportar: ${bitDepth}`);
   }
-  const Flac = await loadFlac();
   const channels = channelData.length;
   const frames = channelData[0].length;
   const maxVal = Math.pow(2, bitDepth - 1) - 1;

@@ -6,7 +6,12 @@
   "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {
-    "test:roundtrip": "node test/roundtrip.mjs"
+    "test:roundtrip": "node test/roundtrip.mjs",
+    "test:stereo": "node test/detect-stereo.mjs",
+    "test:wav": "node test/wav-roundtrip.mjs",
+    "test:flac": "node test/flac-roundtrip.mjs",
+    "test:duration": "node test/duration-exact.mjs",
+    "test": "npm run test:roundtrip && npm run test:stereo && npm run test:wav && npm run test:flac && npm run test:duration"
   },
   "dependencies": {
     "@wasm-audio-decoders/flac": "^0.2.10"
