@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Centrail — Diagnóstico y corrección de afinación de referencia</title>
-<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="fonts/fonts.css?v=1.0.0">
 <style>
   /* ── Tokens: estética de instrumento de banco de pruebas ──
      fondo grafito, tinta cálida serigrafiada, ámbar de aguja VU,
@@ -312,8 +312,8 @@
 
 <script type="module">
 "use strict";
-import { detectFormat } from "./engine/decode.mjs";
-import { AVAILABLE_LOCALES, loadLocale, detectDefaultLocale, saveLocale, makeTranslator } from "./engine/i18n.mjs";
+import { detectFormat } from "./engine/decode.mjs?v=1.0.0";
+import { AVAILABLE_LOCALES, loadLocale, detectDefaultLocale, saveLocale, makeTranslator } from "./engine/i18n.mjs?v=1.0.0";
 
 const $ = id => document.getElementById(id);
 const drop = $("drop"), fileIn = $("file"), prog = $("prog"), pbar = $("pbar"), pfill = $("pfill"),
@@ -362,7 +362,7 @@ await setLocale(detectDefaultLocale());
 
 function newWorker() {
   if (worker) worker.terminate();
-  worker = new Worker(new URL("./workers/engine.worker.mjs", import.meta.url), { type: "module" });
+  worker = new Worker(new URL("./workers/engine.worker.mjs?v=1.0.0", import.meta.url), { type: "module" });
   worker.onmessage = onWorkerMessage;
   worker.onerror = (e) => showError(t("error.workerError", { message: e.message }));
   return worker;

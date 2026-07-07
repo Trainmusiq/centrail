@@ -2,16 +2,16 @@
 // Tubería de decodificación unificada (§3): el buffer decodificado se cachea aquí
 // y se reutiliza tal cual para "correct" — nunca se vuelve a decodificar el archivo.
 
-import { decodeFlac } from "../engine/decode.mjs";
-import { decodeWav, encodeWav } from "../engine/wav.mjs";
-import { encodeFlac } from "../engine/flac-encode.mjs";
-import { analyze } from "../engine/detect.mjs";
-import { loadRubberBand, pitchShiftOffline, peakOf, applyPeakSafety } from "../engine/correct.mjs";
+import { decodeFlac } from "../engine/decode.mjs?v=1.0.0";
+import { decodeWav, encodeWav } from "../engine/wav.mjs?v=1.0.0";
+import { encodeFlac } from "../engine/flac-encode.mjs?v=1.0.0";
+import { analyze } from "../engine/detect.mjs?v=1.0.0";
+import { loadRubberBand, pitchShiftOffline, peakOf, applyPeakSafety } from "../engine/correct.mjs?v=1.0.0";
 
 let rbApiPromise = null;
 function getRubberBand() {
   if (!rbApiPromise) {
-    rbApiPromise = fetch(new URL("../vendor/rubberband-wasm/rubberband.wasm", import.meta.url))
+    rbApiPromise = fetch(new URL("../vendor/rubberband-wasm/rubberband.wasm?v=1.0.0", import.meta.url))
       .then(r => r.arrayBuffer())
       .then(bytes => WebAssembly.compile(bytes))
       .then(mod => loadRubberBand(mod));

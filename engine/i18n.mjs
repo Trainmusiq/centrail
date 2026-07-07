@@ -11,7 +11,7 @@ const cache = {};
 
 export async function loadLocale(code) {
   if (cache[code]) return cache[code];
-  const res = await fetch(new URL(`../i18n/${code}.json`, import.meta.url));
+  const res = await fetch(new URL(`../i18n/${code}.json?v=1.0.0`, import.meta.url));
   if (!res.ok) throw new Error(`No se pudo cargar el idioma "${code}"`);
   const data = await res.json();
   cache[code] = data;
