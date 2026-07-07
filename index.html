@@ -61,15 +61,30 @@
   .drop .fmt { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); letter-spacing: 0.06em; }
   input[type=file] { display: none; }
 
-  /* ── Progreso honesto (§4.3): etapa nombrada + porcentaje real, nunca spinner ── */
-  .progress { display: none; margin-top: 18px; }
-  .progress.on { display: block; }
-  .pbar { height: 4px; background: var(--panel-2); border-radius: 2px; overflow: hidden; }
+  /* ── Progreso honesto (§4.3): velo modal, etapa nombrada + porcentaje real, nunca spinner ── */
+  .progress {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    align-items: center; justify-content: center; padding: 20px;
+    background: rgba(22, 24, 29, 0.9); backdrop-filter: blur(2px);
+  }
+  .progress.on { display: flex; }
+  .progress-card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 34px 36px 30px; width: min(380px, 100%); text-align: center;
+  }
+  .ppercent {
+    font-family: var(--mono); font-size: clamp(36px, 9vw, 48px); font-weight: 500;
+    color: var(--amber); line-height: 1;
+  }
+  .ppercent.done { color: var(--cyan); }
+  .ppercent.error { color: var(--red); }
+  .pbar { height: 6px; background: var(--panel-2); border-radius: 3px; overflow: hidden; margin-top: 18px; }
   .pbar > div { height: 100%; width: 0%; background: var(--amber); transition: width .12s linear; }
   .pbar.done > div { background: var(--cyan); }
   .pbar.error > div { background: var(--red); width: 100% !important; }
-  .plabel { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); margin-top: 8px; }
+  .plabel { font-family: var(--mono); font-size: 12px; color: var(--ink-dim); margin-top: 14px; }
   .plabel.error { color: var(--red); }
+  .plocal-note { font-size: 11.5px; color: var(--ink-dim); margin-top: 16px; line-height: 1.5; }
 
   .result { display: none; margin-top: 26px; }
   .result.on { display: block; animation: rise .35s ease; }
@@ -141,9 +156,12 @@
   .preset.active:hover { border-color: var(--amber); }
   .free-freq { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-dim); }
   .free-freq input {
-    width: 90px; font-family: var(--mono); font-size: 13px; background: var(--panel-2);
+    width: 110px; font-family: var(--mono); font-size: 13px; background: var(--panel-2);
     border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 8px 10px;
+    -moz-appearance: textfield;
   }
+  .free-freq input::-webkit-outer-spin-button,
+  .free-freq input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .free-freq input:focus { outline: 2px solid var(--cyan); outline-offset: 1px; }
   .shift-note { font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim); margin: 10px 0 14px; }
   .go button {
@@ -195,9 +213,13 @@
   </div>
   <div class="err" id="err"></div>
 
-  <div class="progress" id="prog">
-    <div class="pbar" id="pbar"><div id="pfill"></div></div>
-    <div class="plabel" id="plabel">Decodificando…</div>
+  <div class="progress" id="prog" role="status" aria-live="polite">
+    <div class="progress-card">
+      <div class="ppercent" id="ppercent">0%</div>
+      <div class="pbar" id="pbar"><div id="pfill"></div></div>
+      <div class="plabel" id="plabel">Decodificando…</div>
+      <div class="plocal-note">Procesando en tu equipo — tu audio no ha salido de aquí.</div>
+    </div>
   </div>
 
   <div class="result" id="result">
@@ -250,7 +272,7 @@
         </div>
         <div class="free-freq">
           <label for="freeHz">Valor libre</label>
-          <input type="number" id="freeHz" step="0.1" min="200" max="880" placeholder="p.ej. 435">
+          <input type="number" id="freeHz" step="0.1" min="200" max="880" placeholder="435">
           <span>Hz</span>
         </div>
         <div class="shift-note" id="shiftNote"></div>
@@ -311,13 +333,19 @@ function formatEta(seconds) {
   return m > 0 ? `${m} min ${String(s).padStart(2, "0")} s` : `${s} s`;
 }
 
+const ppercent = $("ppercent");
+
 const ui = {
   progress(p, stage) {
-    prog.classList.remove("on"); prog.classList.add("on");
+    prog.classList.add("on");
     pbar.classList.remove("error");
-    pbar.classList.toggle("done", p >= 1);
+    ppercent.classList.remove("error");
     plabel.classList.remove("error");
+    const done = p >= 1;
+    pbar.classList.toggle("done", done);
+    ppercent.classList.toggle("done", done);
     pfill.style.width = (Math.max(0, Math.min(1, p)) * 100).toFixed(1) + "%";
+    ppercent.textContent = (p * 100).toFixed(0) + "%";
 
     if (stage !== stageName) { stageName = stage; stageStart = performance.now(); }
     const elapsed = (performance.now() - stageStart) / 1000;
@@ -327,12 +355,14 @@ const ui = {
       if (eta) etaTxt = ` — resta ~${eta}`;
     }
     const label = stage ? stage[0].toUpperCase() + stage.slice(1) : "Procesando";
-    plabel.textContent = `${label}… ${(p * 100).toFixed(0)}%${etaTxt}`;
+    plabel.textContent = `${label}…${etaTxt}`;
   },
   error(label) {
     prog.classList.add("on");
     pbar.classList.add("error");
+    ppercent.classList.add("error");
     plabel.classList.add("error");
+    ppercent.textContent = "!";
     plabel.textContent = label;
   },
   hideProgress() { prog.classList.remove("on"); }
@@ -457,22 +487,25 @@ function onWorkerMessage(ev) {
 function render(r, name) {
   $("hzval").textContent = r.refHz.toFixed(2);
   const absDev = Math.abs(r.offset);
+  const lowConf = r.R < 0.15;
   const v = $("verdict");
+  const dir = r.offset > 0 ? "alta" : "baja";
+  const cents = `${Math.abs(r.offset).toFixed(1)} cents ${r.offset > 0 ? "sobre" : "bajo"} 440 Hz`;
   if (absDev < 3) {
-    v.innerHTML = `Afinación de referencia <b>dentro del estándar A440</b> (desviación imperceptible).`;
+    v.innerHTML = lowConf ? `Parece estar afinado, pero la medición no es confiable (ver abajo).` : `Ya está afinado. <b>Déjalo así.</b>`;
   } else if (absDev < 10) {
-    v.innerHTML = `Levemente <span class="off">${r.offset > 0 ? "alta" : "baja"}</span>: ${Math.abs(r.offset).toFixed(1)} cents ${r.offset > 0 ? "sobre" : "bajo"} 440 Hz.`;
+    v.innerHTML = lowConf ? `Parece estar levemente <span class="off">${dir}</span> (${cents}), pero la medición no es confiable.` : `Levemente <span class="off">${dir}</span>: ${cents}.`;
   } else {
-    v.innerHTML = `Claramente <span class="off">${r.offset > 0 ? "alta" : "baja"}</span>: ${Math.abs(r.offset).toFixed(1)} cents ${r.offset > 0 ? "sobre" : "bajo"} 440 Hz. Corregible sin alterar el tempo.`;
+    v.innerHTML = lowConf ? `Parece estar claramente <span class="off">${dir}</span> (${cents}), pero la medición no es confiable.` : `Claramente <span class="off">${dir}</span>: ${cents}.`;
   }
 
-  // Honestidad (§4.3): archivo ya afinado, o medición poco confiable.
+  // Honestidad (§4.3): una línea esencial, sin sobre-explicar — el detalle vive en "Cómo mide".
   const honestyBox = $("honestyBox");
   honestyBox.innerHTML = "";
-  if (r.R < 0.15) {
-    honestyBox.innerHTML = `<div class="honesty low-conf">Consistencia tonal baja (${(r.R*100).toFixed(0)}%): esta medición <b>no es confiable</b>. Es típico en material con mucha percusión o mezcla densa — no implica que el archivo esté mal afinado, solo que el promedio global tiene más ruido de lo normal. Corregir con este dato es arriesgado.</div>`;
+  if (lowConf) {
+    honestyBox.innerHTML = `<div class="honesty low-conf">Consistencia tonal baja (${(r.R * 100).toFixed(0)}%): esta medición no es confiable.</div>`;
   } else if (absDev < 3 && r.maxDrift < 3) {
-    honestyBox.innerHTML = `<div class="honesty">Este archivo ya está afinado al estándar; corregirlo solo puede degradarlo. El botón de corrección sigue disponible pero no es recomendable.</div>`;
+    honestyBox.innerHTML = `<div class="honesty">Ya está afinado. Corregirlo solo puede degradarlo.</div>`;
   }
 
   $("s-ref").textContent = r.refHz.toFixed(2) + " Hz";
@@ -528,10 +561,10 @@ function drawDial(offset) {
   const svg = $("dial");
   const cx = 170, cy = 118, rad = 100;
   const clamp = Math.max(-50, Math.min(50, offset));
-  const ang = -Math.PI / 2 + (clamp / 50) * (Math.PI / 3);
+  const ang = (clamp / 50) * (Math.PI / 3); // 0 = vertical (centrado), ±60° en los extremos
   let ticks = "";
   for (let c = -50; c <= 50; c += 10) {
-    const a = -Math.PI / 2 + (c / 50) * (Math.PI / 3);
+    const a = (c / 50) * (Math.PI / 3);
     const r1 = c === 0 ? rad - 16 : rad - 9;
     ticks += tick(cx, cy, a, r1, rad, c === 0);
   }

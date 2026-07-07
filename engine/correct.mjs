@@ -126,7 +126,9 @@ export function peakOf(channelData) {
 export function applyPeakSafety(channelData, originalPeak) {
   const correctedPeak = peakOf(channelData);
   const ceiling = Math.min(1, originalPeak || 1);
-  if (correctedPeak <= ceiling || correctedPeak <= 0) return null;
+  // margen de 0.05 dB: no informar diferencias imperceptibles/de precisión numérica
+  const NEGLIGIBLE = Math.pow(10, 0.05 / 20);
+  if (correctedPeak <= ceiling * NEGLIGIBLE || correctedPeak <= 0) return null;
 
   const gain = ceiling / correctedPeak;
   const reductionDb = -20 * Math.log10(gain);
