@@ -4,8 +4,9 @@
 
 import { decodeFlac } from "../engine/decode.mjs";
 import { decodeWav, encodeWav } from "../engine/wav.mjs";
+import { encodeFlac } from "../engine/flac-encode.mjs";
 import { analyze } from "../engine/detect.mjs";
-import { loadRubberBand, pitchShiftOffline } from "../engine/correct.mjs";
+import { loadRubberBand, pitchShiftOffline, peakOf, applyPeakSafety } from "../engine/correct.mjs";
 
 let rbApiPromise = null;
 function getRubberBand() {
@@ -50,7 +51,7 @@ async function diagnose({ fileName, format, bytes, decoded }) {
     throw new Error(`Formato no soportado en el worker: ${format}`);
   }
 
-  current = { ...d, format, fileBaseName: baseName(fileName) };
+  current = { ...d, format, fileBaseName: baseName(fileName), peak: peakOf(d.channelData) };
 
   post({ type: "progress", stage: "analizando", pct: 0.2 });
   const r = await analyze(
@@ -99,18 +100,23 @@ async function correct({ targetHz, detectedRefHz }) {
   post({ type: "progress", stage: "verificando", pct: 0.95 });
   const after = await analyze({ channelData: corrected, sampleRate: current.sampleRate });
 
+  // Seguridad de nivel (§11/§4.3): nunca preguntar — actuar mínimo e informar.
+  const levelNote = applyPeakSafety(corrected, current.peak);
+
   post({ type: "progress", stage: "codificando", pct: 0.98 });
   const bitDepth = chooseExportBitDepth();
-  const wavBytes = encodeWav({ channelData: corrected, sampleRate: current.sampleRate, bitDepth });
-
   const suffix = `_${targetHz}Hz`;
-  const files = [{
-    name: `${current.fileBaseName}${suffix}.wav`,
-    bytes: wavBytes.buffer,
-    mime: "audio/wav",
-  }];
-  // TODO (siguiente hito): además de WAV, ofrecer FLAC siempre disponible y, si el
-  // formato de entrada es FLAC, "mismo formato" (§4.2) vía encoder libflacjs.
+  const files = [];
+
+  // WAV siempre disponible (§4.2), o "mismo formato" si la entrada ya era WAV.
+  const wavBytes = encodeWav({ channelData: corrected, sampleRate: current.sampleRate, bitDepth });
+  files.push({ name: `${current.fileBaseName}${suffix}.wav`, bytes: wavBytes.buffer, mime: "audio/wav" });
+
+  // FLAC siempre disponible (§4.2), o "mismo formato" si la entrada ya era FLAC —
+  // en ambos casos es el mismo archivo, no se duplica.
+  const flacBitDepth = bitDepth === 16 || bitDepth === 24 ? bitDepth : 24;
+  const flacBytes = await encodeFlac({ channelData: corrected, sampleRate: current.sampleRate, bitDepth: flacBitDepth });
+  files.push({ name: `${current.fileBaseName}${suffix}.flac`, bytes: flacBytes.buffer, mime: "audio/flac" });
 
   post(
     {
@@ -118,6 +124,7 @@ async function correct({ targetHz, detectedRefHz }) {
       after: { refHz: after.refHz, offset: after.offset, R: after.R },
       durationSamplesIn: current.channelData[0].length,
       durationSamplesOut: corrected[0].length,
+      levelNote,
       files,
     },
     files.map(f => f.bytes)

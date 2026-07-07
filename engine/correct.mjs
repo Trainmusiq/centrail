@@ -101,3 +101,35 @@ export async function pitchShiftOffline(rbApi, { channelData, sampleRate, pitchS
 
   return { channelData: outputBuffers };
 }
+
+/** @param {Float32Array[]} channelData */
+export function peakOf(channelData) {
+  let peak = 0;
+  for (const ch of channelData) {
+    for (let i = 0; i < ch.length; i++) {
+      const a = Math.abs(ch[i]);
+      if (a > peak) peak = a;
+    }
+  }
+  return peak;
+}
+
+/**
+ * Seguridad de nivel (§4.3/§11): la corrección de pitch puede levantar el pico
+ * (los transientes se redistribuyen). Nunca preguntar — actuar mínimo e informar.
+ * Techo = el más bajo entre 0 dBFS y el pico del archivo original: nunca clip,
+ * nunca deja el resultado más "caliente" que la fuente. Escala en el lugar.
+ * @param {Float32Array[]} channelData  se modifica in-place si hace falta atenuar
+ * @param {number} originalPeak
+ * @returns {{reductionDb: number, reason: 'recorte'|'pico original'}|null}
+ */
+export function applyPeakSafety(channelData, originalPeak) {
+  const correctedPeak = peakOf(channelData);
+  const ceiling = Math.min(1, originalPeak || 1);
+  if (correctedPeak <= ceiling || correctedPeak <= 0) return null;
+
+  const gain = ceiling / correctedPeak;
+  const reductionDb = -20 * Math.log10(gain);
+  for (const ch of channelData) for (let i = 0; i < ch.length; i++) ch[i] *= gain;
+  return { reductionDb, reason: correctedPeak > 1 ? "recorte" : "pico original" };
+}

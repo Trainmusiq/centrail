@@ -259,6 +259,7 @@
         <div class="corrected-result" id="correctedResult" style="display:none">
           <div class="stat"><span class="k">Re-medido tras corrección</span><span class="v cy" id="c-ref">—</span></div>
           <div class="stat"><span class="k">Desviación respecto al destino</span><span class="v cy" id="c-dev">—</span></div>
+          <div id="levelNote"></div>
           <div class="downloads" id="downloads"></div>
         </div>
       </div>
@@ -500,6 +501,14 @@ function renderCorrected(msg) {
   $("c-ref").textContent = msg.after.refHz.toFixed(2) + " Hz";
   const dev = 1200 * Math.log2(msg.after.refHz / selectedTargetHz);
   $("c-dev").textContent = (dev >= 0 ? "+" : "") + dev.toFixed(2) + " ¢";
+
+  const levelEl = $("levelNote");
+  if (msg.levelNote) {
+    const why = msg.levelNote.reason === "recorte" ? "evitar recorte" : "no superar el nivel del original";
+    levelEl.innerHTML = `<div class="honesty">Se redujo el nivel ${msg.levelNote.reductionDb.toFixed(1)} dB para ${why}.</div>`;
+  } else {
+    levelEl.innerHTML = "";
+  }
 
   const dl = $("downloads");
   dl.innerHTML = "";
