@@ -195,8 +195,19 @@
   details p { font-size: 13px; line-height: 1.65; color: var(--ink-dim); margin-top: 10px; max-width: 62ch; }
   details p b { color: var(--ink); font-weight: 600; }
 
-  .err { display: none; margin-top: 14px; font-size: 13px; color: var(--red); font-family: var(--mono); }
+  .err {
+    display: none; margin-top: 14px; padding: 12px 14px; border-radius: 10px;
+    background: var(--panel-2); border-left: 3px solid var(--red);
+  }
   .err.on { display: block; }
+  .err-msg { font-size: 13px; color: var(--red); font-family: var(--mono); line-height: 1.5; }
+  .err-copy {
+    margin-top: 10px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
+    background: none; border: 1px solid var(--line); color: var(--ink-dim);
+    padding: 6px 12px; border-radius: 6px; cursor: pointer;
+  }
+  .err-copy:hover { border-color: var(--cyan); color: var(--cyan); }
+  .err-copy.copied { border-color: var(--cyan); color: var(--cyan); }
 
   .lang-switch { display: flex; gap: 4px; margin-top: 8px; justify-content: flex-end; }
   .lang-switch button {
@@ -222,7 +233,10 @@
     <div class="fmt" data-i18n="drop.formats"></div>
     <input type="file" id="file" accept="audio/*,.flac,.wav,.mp3,.ogg,.m4a">
   </div>
-  <div class="err" id="err"></div>
+  <div class="err" id="err">
+    <div class="err-msg" id="errMsg"></div>
+    <button class="err-copy" id="errCopyBtn" type="button"></button>
+  </div>
 
   <div class="progress" id="prog" role="status" aria-live="polite">
     <div class="progress-card">
@@ -315,14 +329,19 @@
 import { detectFormat } from "./engine/decode.mjs?v=1.0.0";
 import { AVAILABLE_LOCALES, loadLocale, detectDefaultLocale, saveLocale, makeTranslator } from "./engine/i18n.mjs?v=1.0.0";
 
+const APP_VERSION = "1.0.0"; // sincronizado con package.json — scripts/bump-cache-version.sh lo actualiza
+
 const $ = id => document.getElementById(id);
 const drop = $("drop"), fileIn = $("file"), prog = $("prog"), pbar = $("pbar"), pfill = $("pfill"),
-      plabel = $("plabel"), result = $("result"), errBox = $("err"), goBtn = $("goBtn");
+      plabel = $("plabel"), result = $("result"), errBox = $("err"), errMsgEl = $("errMsg"),
+      errCopyBtn = $("errCopyBtn"), goBtn = $("goBtn");
 
 let worker = null;
 let currentFileName = "";
+let currentFileInfo = null; // { format, sizeBytes }
 let lastDiagnosis = null;
 let selectedTargetHz = 440;
+let lastErrorDiagnostic = "";
 
 // ── i18n (§4.4): arquitectura lista para los 10 idiomas de v1.1 — agregar un
 // idioma es sumar i18n/{code}.json + una entrada en engine/i18n.mjs. ──
@@ -421,11 +440,51 @@ const ui = {
   hideProgress() { prog.classList.remove("on"); }
 };
 
-function showError(msg) {
-  errBox.textContent = msg;
-  errBox.classList.add("on");
-  ui.error(t("progress.error"));
+// Info de diagnóstico copiable (sin telemetría: nada se envía a ningún lado,
+// solo se arma un texto para que el usuario lo pegue a mano en un Issue de
+// GitHub si quiere reportar un problema).
+function buildDiagnosticInfo(msg) {
+  const lines = [
+    `Centrail ${APP_VERSION}`,
+    `Fecha: ${new Date().toISOString()}`,
+    `Idioma: ${document.documentElement.lang}`,
+    `Navegador: ${navigator.userAgent}`,
+    `Error: ${msg}`,
+  ];
+  if (currentFileInfo) {
+    lines.push(`Archivo: formato=${currentFileInfo.format}, tamaño=${(currentFileInfo.sizeBytes / 1e6).toFixed(1)}MB`);
+  }
+  if (lastDiagnosis) {
+    lines.push(
+      `Diagnóstico previo: ${lastDiagnosis.refHz.toFixed(2)}Hz, ${lastDiagnosis.sampleRate}Hz/${lastDiagnosis.bitDepth}-bit, ${lastDiagnosis.channels}ch, R=${(lastDiagnosis.R * 100).toFixed(0)}%`
+    );
+  }
+  return lines.join("\n");
 }
+
+function showError(msg) {
+  errMsgEl.textContent = msg;
+  errBox.classList.add("on");
+  // El velo de progreso marca el error en rojo brevemente (nunca oculta que algo
+  // falló) y luego se retira para dejar ver el detalle + el botón de copiar —
+  // si se quedara arriba, taparía el mensaje real para siempre (§4.3, honestidad).
+  ui.error(t("progress.error"));
+  setTimeout(() => ui.hideProgress(), 1200);
+  lastErrorDiagnostic = buildDiagnosticInfo(msg);
+  errCopyBtn.textContent = t("error.copyDiagnostic");
+  errCopyBtn.classList.remove("copied");
+}
+
+errCopyBtn.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(lastErrorDiagnostic);
+    errCopyBtn.textContent = t("error.copied");
+    errCopyBtn.classList.add("copied");
+  } catch {
+    // clipboard API puede fallar por permisos — igual mostramos el texto seleccionable
+    errMsgEl.textContent = lastErrorDiagnostic;
+  }
+});
 
 drop.addEventListener("click", () => fileIn.click());
 drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileIn.click(); } });
@@ -487,6 +546,7 @@ async function run(file) {
   ui.progress(0.01, "cargando");
 
   const format = detectFormat(file.name);
+  currentFileInfo = { format, sizeBytes: file.size };
   if (format === "aiff" || format === "unknown") {
     showError(t("error.unsupportedFormat", { format }));
     return;

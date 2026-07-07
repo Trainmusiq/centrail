@@ -82,5 +82,7 @@
   "error.unsupportedFormat": "Format not supported in this version ({format}). Available formats: WAV, FLAC, MP3, OGG, M4A.",
   "error.loadFailed": "Couldn't load the file: {message}",
   "error.processFailed": "Couldn't process the file: {message}",
-  "error.workerError": "Internal worker error: {message}"
+  "error.workerError": "Internal worker error: {message}",
+  "error.copyDiagnostic": "Copy diagnostic info",
+  "error.copied": "Copied — paste it into a GitHub Issue"
 }

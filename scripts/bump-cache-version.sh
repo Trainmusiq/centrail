@@ -25,6 +25,9 @@ for f in "${FILES[@]}"; do
   sed -i '' "s/?v=${OLD}/?v=${NEW}/g" "$f"
 done
 
+# APP_VERSION embebido en index.html (usado en el bloque de diagnóstico copiable)
+sed -i '' "s/APP_VERSION = \"${OLD}\"/APP_VERSION = \"${NEW}\"/" index.html
+
 node -e "
 const fs = require('fs');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
