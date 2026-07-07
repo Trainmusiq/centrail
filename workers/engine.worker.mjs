@@ -51,7 +51,13 @@ async function diagnose({ fileName, format, bytes, decoded }) {
     throw new Error(`Formato no soportado en el worker: ${format}`);
   }
 
+  // Yield tras decodificar: en archivos grandes (24/96, 10+ min) el decoder deja
+  // basura pesada (buffers internos del WASM) que conviene dejar recolectar antes
+  // de las siguientes asignaciones grandes (§4.4, stress test 24/96/12min).
+  await new Promise((r) => setTimeout(r, 0));
+
   current = { ...d, format, fileBaseName: baseName(fileName), peak: peakOf(d.channelData) };
+  await new Promise((r) => setTimeout(r, 0));
 
   post({ type: "progress", stage: "analizando", pct: 0.2 });
   const r = await analyze(
@@ -97,6 +103,8 @@ async function correct({ targetHz, detectedRefHz }) {
     (p, stage) => post({ type: "progress", stage: stage === "study" ? "estudiando" : "corrigiendo", pct: p })
   );
 
+  await new Promise((r) => setTimeout(r, 0)); // yield: liberar buffers de estudio de Rubber Band
+
   post({ type: "progress", stage: "verificando", pct: 0.95 });
   const after = await analyze({ channelData: corrected, sampleRate: current.sampleRate });
 
@@ -111,6 +119,7 @@ async function correct({ targetHz, detectedRefHz }) {
   // WAV siempre disponible (§4.2), o "mismo formato" si la entrada ya era WAV.
   const wavBytes = encodeWav({ channelData: corrected, sampleRate: current.sampleRate, bitDepth });
   files.push({ name: `${current.fileBaseName}${suffix}.wav`, bytes: wavBytes.buffer, mime: "audio/wav" });
+  await new Promise((r) => setTimeout(r, 0)); // yield: WAV y FLAC no necesitan coexistir en memoria a la vez
 
   // FLAC siempre disponible (§4.2), o "mismo formato" si la entrada ya era FLAC —
   // en ambos casos es el mismo archivo, no se duplica.

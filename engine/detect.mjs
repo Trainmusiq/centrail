@@ -48,9 +48,22 @@ const fft = makeFFT(FFT_N);
 const hann = new Float64Array(FFT_N);
 for (let i = 0; i < FFT_N; i++) hann[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (FFT_N - 1));
 
-function analyzeFrame(mono, start, sr, sink) {
+function analyzeFrame(channelData, start, sr, sink) {
+  // downmix a mono solo de esta ventana (no del archivo completo): evita duplicar
+  // en memoria la señal entera para archivos largos (§4.4, stress test 24/96 12min).
   const re = new Float64Array(FFT_N), im = new Float64Array(FFT_N);
-  for (let i = 0; i < FFT_N; i++) re[i] = mono[start + i] * hann[i];
+  const ch = channelData.length;
+  if (ch === 1) {
+    const d = channelData[0];
+    for (let i = 0; i < FFT_N; i++) re[i] = d[start + i] * hann[i];
+  } else {
+    const inv = 1 / ch;
+    for (let i = 0; i < FFT_N; i++) {
+      let s = 0;
+      for (let c = 0; c < ch; c++) s += channelData[c][start + i];
+      re[i] = s * inv * hann[i];
+    }
+  }
   fft(re, im);
   const half = FFT_N >> 1;
   const mag = new Float64Array(half);
@@ -113,12 +126,6 @@ export async function analyze({ channelData, sampleRate }, onProgress) {
   const sr = sampleRate;
   const ch = channelData.length;
   const len = channelData[0].length;
-  // downmix a mono
-  const mono = new Float32Array(len);
-  for (let c = 0; c < ch; c++) {
-    const d = channelData[c];
-    for (let i = 0; i < len; i++) mono[i] += d[i] / ch;
-  }
 
   const usable = len - FFT_N;
   if (usable < 0) throw new Error("El archivo es demasiado corto para analizar.");
@@ -132,7 +139,7 @@ export async function analyze({ channelData, sampleRate }, onProgress) {
   for (let f = 0; f < nFrames; f++) {
     const start = Math.min(usable, Math.round(f * hop));
     const seg = Math.min(SEGMENTS - 1, Math.floor(start / len * SEGMENTS));
-    analyzeFrame(mono, start, sr, (dev, w) => {
+    analyzeFrame(channelData, start, sr, (dev, w) => {
       let bin = Math.round(dev + 49.5);
       if (bin < 0) bin = 0; if (bin >= NBINS) bin = NBINS - 1;
       hist[bin] += w;
