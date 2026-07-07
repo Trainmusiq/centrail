@@ -1,6 +1,6 @@
 # trainmusiq — Roadmap maestro hacia la herramienta monetizable
 
-**Versión:** 1.3 · 6 de julio de 2026
+**Versión:** 1.4 · 7 de julio de 2026
 **Destino:** `docs/roadmap.md` en el repo `trainmusiq/centrail` (documento vivo; lo mantiene quien ejecute cada sesión)
 **Relación con otros documentos:** `docs/especificacion.md` = el QUÉ técnico de cada etapa; este roadmap = el CUÁNDO, el ORDEN y el POR QUÉ comercial. `docs/brief-diseno.md` = identidad visual (fase posterior).
 **Regla madre (inmutable):** no se abre una etapa sin publicar la anterior. Nada entra a una versión en construcción; lo nuevo se anota aquí y espera.
@@ -132,3 +132,18 @@ Cada sesión futura de Claude Code parte con: *"Lee docs/especificacion.md y doc
 **pianowagon (tablatura):** audio→MIDI (Basic Pitch) · digitación automática (dataset PIG) · grilla beats×notas con número de dedo · export MIDI/MusicXML · **transcripción multi-voz** (identificar las líneas/voces de una sección — ej. violines en 2 voces — como MIDI/partitura, SIN separar el audio: lo que la separación no puede, la transcripción sí, y para estudiar suele bastar).
 
 **Transversales de ecosistema:** progreso honesto · privacidad client-side · actuar-mínimo-e-informar · i18n 10 idiomas · tier servidor = velocidad · candidato futuro: PWA instalable con uso offline.
+
+**Cluster "one-click" (lo que un DAW hace complejo, aquí en un clic; banco de ideas, cada una entra cuando su herramienta/versión la abra):**
+- **Procesamiento por lotes** (carpeta/álbum/discoteca completa: diagnosticar y temperar todo de una vez — killer para el nicho coleccionista que Moises ignora; candidato centrail v1.x).
+- **Modo práctica one-click** (trackjunction): loop A-B + velocidad reducida + transpuesto a tu tonalidad, en un botón.
+- **Pack de práctica exportable**: un zip con stems + chord chart + versión lenta + metadatos, de una vez.
+- **Igualar afinación entre dos canciones** (DJ/mashup/medley: mide ambas, tempera una a la otra).
+- **Nivelar volumen a estándar de playlist** (normalización LUFS con un clic, informando el ajuste).
+- **Click/metrónomo sincronizado** sobre la canción (nace del beat tracking de chordtrain).
+- Trim/fades/quitar silencios de extremos; export de secciones/loops; edición de metadatos FLAC.
+
+**Diferenciación drástica vs Moises (síntesis comercial, julio 2026 — Moises: gratis 5 separaciones/mes con ads; Premium ~$3.99/mes; Pro ~$9.99/mes):**
+1. **Gratis ilimitado estructural**: nuestro tier gratis corre en el equipo del usuario ⇒ ilimitado, privado y sin ads a costo cero — Moises no puede copiarlo sin demoler su modelo de costos.
+2. **Enseña, no solo procesa**: análisis armónico + pedagogía sobre la música del usuario (ellos: cero).
+3. **Precisión verificable**: open source auditable + incertidumbre declarada + validación documentada (README).
+4. **El nicho ignorado**: alta resolución de punta a punta (FLAC 24/96) + lotes para coleccionistas.
