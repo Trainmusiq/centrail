@@ -197,18 +197,29 @@
 
   .err { display: none; margin-top: 14px; font-size: 13px; color: var(--red); font-family: var(--mono); }
   .err.on { display: block; }
+
+  .lang-switch { display: flex; gap: 4px; margin-top: 8px; justify-content: flex-end; }
+  .lang-switch button {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+    background: none; border: 1px solid var(--line); color: var(--ink-dim);
+    padding: 3px 8px; border-radius: 6px; cursor: pointer; text-transform: uppercase;
+  }
+  .lang-switch button.active { border-color: var(--cyan); color: var(--cyan); }
 </style>
 </head>
 <body>
 <div class="rig">
   <header>
     <h1>Cent<span class="num">rail</span></h1>
-    <div class="plate">Diagnóstico y corrección<br>de afinación de referencia</div>
+    <div>
+      <div class="plate" id="plate" data-i18n-html="header.subtitle"></div>
+      <div class="lang-switch" id="langSwitch"></div>
+    </div>
   </header>
 
-  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Cargar archivo de audio">
-    <div class="big">Suelta un archivo de audio aquí, o haz clic para elegirlo</div>
-    <div class="fmt">WAV · FLAC · MP3 · OGG · M4A — el archivo no sale de tu equipo</div>
+  <div class="drop" id="drop" tabindex="0" role="button" data-i18n-aria-label="drop.aria">
+    <div class="big" data-i18n="drop.title"></div>
+    <div class="fmt" data-i18n="drop.formats"></div>
     <input type="file" id="file" accept="audio/*,.flac,.wav,.mp3,.ogg,.m4a">
   </div>
   <div class="err" id="err"></div>
@@ -217,8 +228,8 @@
     <div class="progress-card">
       <div class="ppercent" id="ppercent">0%</div>
       <div class="pbar" id="pbar"><div id="pfill"></div></div>
-      <div class="plabel" id="plabel">Decodificando…</div>
-      <div class="plocal-note">Procesando en tu equipo — tu audio no ha salido de aquí.</div>
+      <div class="plabel" id="plabel"></div>
+      <div class="plocal-note" data-i18n="progress.privacyNote"></div>
     </div>
   </div>
 
@@ -227,7 +238,7 @@
       <div class="hz"><span id="hzval">—</span><small> Hz</small></div>
       <div class="verdict" id="verdict"></div>
       <div class="dial-wrap">
-        <svg id="dial" viewBox="0 0 340 120" aria-label="Dial de desviación en cents"></svg>
+        <svg id="dial" viewBox="0 0 340 120" data-i18n-aria-label="dial.aria"></svg>
         <div class="dial-cap"><span>−50 ¢</span><span>0 ¢ = 440 Hz</span><span>+50 ¢</span></div>
       </div>
       <div id="honestyBox"></div>
@@ -235,35 +246,35 @@
 
     <div class="grid2">
       <div class="card full">
-        <h2>Histograma de desviación (cents respecto a la rejilla A440)</h2>
+        <h2 data-i18n="card.hist.title"></h2>
         <canvas id="hist" height="150"></canvas>
       </div>
 
       <div class="card">
-        <h2>Medición</h2>
-        <div class="stat"><span class="k">Patrón detectado</span><span class="v am" id="s-ref">—</span></div>
-        <div class="stat"><span class="k">Desviación</span><span class="v am" id="s-cents">—</span></div>
-        <div class="stat"><span class="k">Incertidumbre (±)</span><span class="v" id="s-unc">—</span></div>
-        <div class="stat"><span class="k">Consistencia tonal</span><span class="v cy" id="s-conf">—</span></div>
-        <div class="stat"><span class="k">Ventanas analizadas</span><span class="v" id="s-frames">—</span></div>
+        <h2 data-i18n="card.measurement.title"></h2>
+        <div class="stat"><span class="k" data-i18n="card.measurement.ref"></span><span class="v am" id="s-ref">—</span></div>
+        <div class="stat"><span class="k" data-i18n="card.measurement.dev"></span><span class="v am" id="s-cents">—</span></div>
+        <div class="stat"><span class="k" data-i18n="card.measurement.unc"></span><span class="v" id="s-unc">—</span></div>
+        <div class="stat"><span class="k" data-i18n="card.measurement.conf"></span><span class="v cy" id="s-conf">—</span></div>
+        <div class="stat"><span class="k" data-i18n="card.measurement.frames"></span><span class="v" id="s-frames">—</span></div>
       </div>
 
       <div class="card">
-        <h2>Archivo</h2>
-        <div class="stat"><span class="k">Nombre</span><span class="v" id="s-name" style="max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span></div>
-        <div class="stat"><span class="k">Duración</span><span class="v" id="s-dur">—</span></div>
-        <div class="stat"><span class="k">Sample rate / bits</span><span class="v" id="s-sr">—</span></div>
-        <div class="stat"><span class="k">Canales</span><span class="v" id="s-ch">—</span></div>
+        <h2 data-i18n="card.file.title"></h2>
+        <div class="stat"><span class="k" data-i18n="card.file.name"></span><span class="v" id="s-name" style="max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span></div>
+        <div class="stat"><span class="k" data-i18n="card.file.dur"></span><span class="v" id="s-dur">—</span></div>
+        <div class="stat"><span class="k" data-i18n="card.file.sr"></span><span class="v" id="s-sr">—</span></div>
+        <div class="stat"><span class="k" data-i18n="card.file.ch"></span><span class="v" id="s-ch">—</span></div>
       </div>
 
       <div class="card full">
-        <h2>Deriva a lo largo del tema (drift)</h2>
+        <h2 data-i18n="card.drift.title"></h2>
         <canvas id="drift" height="110"></canvas>
         <div class="drift-note" id="driftnote"></div>
       </div>
 
       <div class="card full correct-card">
-        <h2>Corregir a</h2>
+        <h2 data-i18n="correct.title"></h2>
         <div class="presets" id="presets">
           <button class="preset" data-hz="432">432 Hz</button>
           <button class="preset active" data-hz="440">440 Hz</button>
@@ -271,37 +282,38 @@
           <button class="preset" data-hz="444">444 Hz</button>
         </div>
         <div class="free-freq">
-          <label for="freeHz">Valor libre</label>
+          <label for="freeHz" data-i18n="correct.freeLabel"></label>
           <input type="number" id="freeHz" step="0.1" min="200" max="880" placeholder="435">
           <span>Hz</span>
         </div>
         <div class="shift-note" id="shiftNote"></div>
-        <div class="go"><button id="goBtn">CORREGIR Y DESCARGAR</button></div>
+        <div class="go"><button id="goBtn" data-i18n="correct.button"></button></div>
 
         <div class="corrected-result" id="correctedResult" style="display:none">
-          <div class="stat"><span class="k">Re-medido tras corrección</span><span class="v cy" id="c-ref">—</span></div>
-          <div class="stat"><span class="k">Desviación respecto al destino</span><span class="v cy" id="c-dev">—</span></div>
+          <div class="stat"><span class="k" data-i18n="correct.resultRef"></span><span class="v cy" id="c-ref">—</span></div>
+          <div class="stat"><span class="k" data-i18n="correct.resultDev"></span><span class="v cy" id="c-dev">—</span></div>
           <div id="levelNote"></div>
           <div class="downloads" id="downloads"></div>
         </div>
       </div>
     </div>
 
-    <div class="again"><button id="again">ANALIZAR OTRO ARCHIVO</button></div>
+    <div class="again"><button id="again" data-i18n="again.button"></button></div>
   </div>
 
   <details>
-    <summary>Cómo mide</summary>
-    <p>El detector recorre el tema tomando ventanas de audio distribuidas a lo largo de toda su duración. A cada ventana le aplica una <b>FFT con ventana de Hann</b> y refina la frecuencia de cada pico espectral con interpolación parabólica, logrando resolución muy por debajo del ancho de un bin.</p>
-    <p>Cada pico se compara contra la nota más cercana de la escala temperada afinada en <b>A = 440 Hz</b>, y su desviación en cents (módulo 100, con matemática circular) alimenta un histograma ponderado por energía. El máximo del histograma, refinado con media circular, entrega el desplazamiento global; el patrón de referencia es 440 × 2^(desviación/1200). Este método es independiente de la tonalidad del tema y no requiere separar instrumentos.</p>
-    <p>La <b>consistencia tonal</b> indica qué tan concentrado está el histograma: valores altos significan material armónico estable; valores bajos pueden indicar mucha percusión, ruido, o afinación inestable — no necesariamente una medición ambigua (ver hallazgos §3 de la especificación). El panel de <b>deriva</b> divide el tema en segmentos y estima el patrón de cada uno.</p>
-    <p>La corrección usa <b>Rubber Band</b> (modo Finer, máxima calidad) para cambiar el pitch sin alterar el tempo. Medición y corrección siempre operan sobre la <b>misma decodificación</b> del archivo — nunca se mide por un camino y se corrige por otro.</p>
+    <summary data-i18n="howItMeasures.summary"></summary>
+    <p data-i18n-html="howItMeasures.p1"></p>
+    <p data-i18n-html="howItMeasures.p2"></p>
+    <p data-i18n-html="howItMeasures.p3"></p>
+    <p data-i18n-html="howItMeasures.p4"></p>
   </details>
 </div>
 
 <script type="module">
 "use strict";
 import { detectFormat } from "./engine/decode.mjs";
+import { AVAILABLE_LOCALES, loadLocale, detectDefaultLocale, saveLocale, makeTranslator } from "./engine/i18n.mjs";
 
 const $ = id => document.getElementById(id);
 const drop = $("drop"), fileIn = $("file"), prog = $("prog"), pbar = $("pbar"), pfill = $("pfill"),
@@ -312,11 +324,47 @@ let currentFileName = "";
 let lastDiagnosis = null;
 let selectedTargetHz = 440;
 
+// ── i18n (§4.4): arquitectura lista para los 10 idiomas de v1.1 — agregar un
+// idioma es sumar i18n/{code}.json + una entrada en engine/i18n.mjs. ──
+let t = (key) => key; // fallback antes de cargar el diccionario
+
+function applyStaticI18n() {
+  document.title = t("meta.title");
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.querySelectorAll("[data-i18n-aria-label]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAriaLabel)); });
+}
+
+async function setLocale(code) {
+  const dict = await loadLocale(code);
+  t = makeTranslator(dict);
+  saveLocale(code);
+  document.documentElement.lang = code;
+  applyStaticI18n();
+  renderLangSwitch(code);
+  if (lastDiagnosis) { render(lastDiagnosis, currentFileName); updateShiftNote(); }
+}
+
+function renderLangSwitch(active) {
+  const el = $("langSwitch");
+  el.innerHTML = "";
+  for (const { code, label } of AVAILABLE_LOCALES) {
+    const btn = document.createElement("button");
+    btn.textContent = code;
+    btn.title = label;
+    btn.className = code === active ? "active" : "";
+    btn.addEventListener("click", () => setLocale(code));
+    el.appendChild(btn);
+  }
+}
+
+await setLocale(detectDefaultLocale());
+
 function newWorker() {
   if (worker) worker.terminate();
   worker = new Worker(new URL("./workers/engine.worker.mjs", import.meta.url), { type: "module" });
   worker.onmessage = onWorkerMessage;
-  worker.onerror = (e) => showError("Error interno del worker: " + e.message);
+  worker.onerror = (e) => showError(t("error.workerError", { message: e.message }));
   return worker;
 }
 
@@ -328,9 +376,9 @@ let stageName = null, stageStart = 0;
 
 function formatEta(seconds) {
   if (!isFinite(seconds) || seconds < 0) return null;
-  if (seconds < 1) return "menos de 1 s";
+  if (seconds < 1) return t("progress.etaSeconds");
   const m = Math.floor(seconds / 60), s = Math.round(seconds % 60);
-  return m > 0 ? `${m} min ${String(s).padStart(2, "0")} s` : `${s} s`;
+  return m > 0 ? t("progress.etaMinSec", { min: m, sec: String(s).padStart(2, "0") }) : t("progress.etaSec", { sec: s });
 }
 
 const ppercent = $("ppercent");
@@ -352,9 +400,14 @@ const ui = {
     let etaTxt = "";
     if (p > 0.03 && p < 0.995 && elapsed > 0.5) {
       const eta = formatEta(elapsed * (1 - p) / p);
-      if (eta) etaTxt = ` — resta ~${eta}`;
+      if (eta) etaTxt = t("progress.eta", { eta });
     }
-    const label = stage ? stage[0].toUpperCase() + stage.slice(1) : "Procesando";
+    let label = "…";
+    if (stage) {
+      const stageKey = `progress.stage.${stage}`;
+      const translated = t(stageKey);
+      label = translated === stageKey ? stage : translated; // ya viene traducido (ej. "diagnóstico listo")
+    }
     plabel.textContent = `${label}…${etaTxt}`;
   },
   error(label) {
@@ -371,7 +424,7 @@ const ui = {
 function showError(msg) {
   errBox.textContent = msg;
   errBox.classList.add("on");
-  ui.error("Error");
+  ui.error(t("progress.error"));
 }
 
 drop.addEventListener("click", () => fileIn.click());
@@ -412,7 +465,11 @@ freeHzEl.addEventListener("input", () => {
 function updateShiftNote() {
   if (!lastDiagnosis) return;
   const shiftCents = 1200 * Math.log2(selectedTargetHz / lastDiagnosis.detectedRefHz);
-  $("shiftNote").textContent = `${lastDiagnosis.detectedRefHz.toFixed(2)} Hz → ${selectedTargetHz} Hz  (shift: ${shiftCents >= 0 ? "+" : ""}${shiftCents.toFixed(1)} ¢)`;
+  $("shiftNote").textContent = t("correct.shiftNote", {
+    from: lastDiagnosis.detectedRefHz.toFixed(2),
+    to: selectedTargetHz,
+    shift: (shiftCents >= 0 ? "+" : "") + shiftCents.toFixed(1),
+  });
 }
 
 goBtn.addEventListener("click", () => {
@@ -431,7 +488,7 @@ async function run(file) {
 
   const format = detectFormat(file.name);
   if (format === "aiff" || format === "unknown") {
-    showError(`Formato no soportado en esta versión (${format}). Formatos disponibles: WAV, FLAC, MP3, OGG, M4A.`);
+    showError(t("error.unsupportedFormat", { format }));
     return;
   }
 
@@ -459,7 +516,7 @@ async function run(file) {
     }
     drop.style.display = "none";
   } catch (e) {
-    showError("No se pudo cargar el archivo: " + (e && e.message ? e.message : e));
+    showError(t("error.loadFailed", { message: e && e.message ? e.message : e }));
   }
 }
 
@@ -468,18 +525,18 @@ function onWorkerMessage(ev) {
   if (msg.type === "progress") {
     ui.progress(msg.pct, msg.stage);
   } else if (msg.type === "diagnosis") {
-    ui.progress(1, "diagnóstico listo");
+    ui.progress(1, t("progress.diagnosisReady"));
     ui.hideProgress();
     lastDiagnosis = msg;
     render(msg, currentFileName);
     updateShiftNote();
   } else if (msg.type === "corrected") {
-    ui.progress(1, "corrección lista");
+    ui.progress(1, t("progress.correctionReady"));
     ui.hideProgress();
     renderCorrected(msg);
     goBtn.disabled = false;
   } else if (msg.type === "error") {
-    showError("No se pudo procesar el archivo: " + msg.message);
+    showError(t("error.processFailed", { message: msg.message }));
     goBtn.disabled = false;
   }
 }
@@ -489,23 +546,26 @@ function render(r, name) {
   const absDev = Math.abs(r.offset);
   const lowConf = r.R < 0.15;
   const v = $("verdict");
-  const dir = r.offset > 0 ? "alta" : "baja";
-  const cents = `${Math.abs(r.offset).toFixed(1)} cents ${r.offset > 0 ? "sobre" : "bajo"} 440 Hz`;
+  const dir = t(r.offset > 0 ? "verdict.dir.high" : "verdict.dir.low");
+  const cents = t("verdict.centsPhrase", {
+    n: Math.abs(r.offset).toFixed(1),
+    dir: t(r.offset > 0 ? "verdict.centsPhrase.above" : "verdict.centsPhrase.below"),
+  });
   if (absDev < 3) {
-    v.innerHTML = lowConf ? `Parece estar afinado, pero la medición no es confiable (ver abajo).` : `Ya está afinado. <b>Déjalo así.</b>`;
+    v.innerHTML = t(lowConf ? "verdict.inTune.lowConf" : "verdict.inTune.confident");
   } else if (absDev < 10) {
-    v.innerHTML = lowConf ? `Parece estar levemente <span class="off">${dir}</span> (${cents}), pero la medición no es confiable.` : `Levemente <span class="off">${dir}</span>: ${cents}.`;
+    v.innerHTML = t(lowConf ? "verdict.slight.lowConf" : "verdict.slight.confident", { dir, cents });
   } else {
-    v.innerHTML = lowConf ? `Parece estar claramente <span class="off">${dir}</span> (${cents}), pero la medición no es confiable.` : `Claramente <span class="off">${dir}</span>: ${cents}.`;
+    v.innerHTML = t(lowConf ? "verdict.clear.lowConf" : "verdict.clear.confident", { dir, cents });
   }
 
   // Honestidad (§4.3): una línea esencial, sin sobre-explicar — el detalle vive en "Cómo mide".
   const honestyBox = $("honestyBox");
   honestyBox.innerHTML = "";
   if (lowConf) {
-    honestyBox.innerHTML = `<div class="honesty low-conf">Consistencia tonal baja (${(r.R * 100).toFixed(0)}%): esta medición no es confiable.</div>`;
+    honestyBox.innerHTML = `<div class="honesty low-conf">${t("honesty.lowConf", { r: (r.R * 100).toFixed(0) })}</div>`;
   } else if (absDev < 3 && r.maxDrift < 3) {
-    honestyBox.innerHTML = `<div class="honesty">Ya está afinado. Corregirlo solo puede degradarlo.</div>`;
+    honestyBox.innerHTML = `<div class="honesty">${t("honesty.alreadyTuned")}</div>`;
   }
 
   $("s-ref").textContent = r.refHz.toFixed(2) + " Hz";
@@ -520,7 +580,7 @@ function render(r, name) {
   const m = Math.floor(r.durationSec / 60), s = Math.round(r.durationSec % 60);
   $("s-dur").textContent = m + ":" + String(s).padStart(2, "0");
   $("s-sr").textContent = (r.sampleRate / 1000).toFixed(1) + " kHz / " + r.bitDepth + "-bit";
-  $("s-ch").textContent = r.channels === 1 ? "mono" : r.channels === 2 ? "estéreo" : r.channels + " ch";
+  $("s-ch").textContent = r.channels === 1 ? t("card.file.mono") : r.channels === 2 ? t("card.file.stereo") : t("card.file.channels", { n: r.channels });
 
   drawDial(r.offset);
   drawHist(r.hist, r.offset);
@@ -537,8 +597,8 @@ function renderCorrected(msg) {
 
   const levelEl = $("levelNote");
   if (msg.levelNote) {
-    const why = msg.levelNote.reason === "recorte" ? "evitar recorte" : "no superar el nivel del original";
-    levelEl.innerHTML = `<div class="honesty">Se redujo el nivel ${msg.levelNote.reductionDb.toFixed(1)} dB para ${why}.</div>`;
+    const why = t(msg.levelNote.reason === "recorte" ? "honesty.levelReason.clip" : "honesty.levelReason.original");
+    levelEl.innerHTML = `<div class="honesty">${t("honesty.levelReduced", { db: msg.levelNote.reductionDb.toFixed(1), reason: why })}</div>`;
   } else {
     levelEl.innerHTML = "";
   }
@@ -551,7 +611,7 @@ function renderCorrected(msg) {
     const a = document.createElement("a");
     a.href = url;
     a.download = f.name;
-    a.textContent = "Descargar " + f.name;
+    a.textContent = t("correct.download", { name: f.name });
     dl.appendChild(a);
   }
 }
@@ -676,19 +736,14 @@ function drawDrift(segs, globalOff) {
   });
 
   g.fillStyle = dim; g.textAlign = "center";
-  g.fillText("inicio", x(0), H - 6);
-  g.fillText("final", x(segs.length - 1), H - 6);
+  g.fillText(t("card.drift.start"), x(0), H - 6);
+  g.fillText(t("card.drift.end"), x(segs.length - 1), H - 6);
 
   let maxDrift = 0;
   for (const s of valid) maxDrift = Math.max(maxDrift, Math.abs(s.off - globalOff));
   const note = $("driftnote");
-  if (maxDrift < 3) {
-    note.innerHTML = `Deriva máxima: <b class="ok">${maxDrift.toFixed(1)} ¢</b> — la afinación es estable a lo largo del tema. Una corrección global basta.`;
-  } else if (maxDrift < 10) {
-    note.innerHTML = `Deriva máxima: <b>${maxDrift.toFixed(1)} ¢</b> — hay variación leve durante el tema (típico de grabaciones en cinta). Una corrección global deja el promedio en el destino, pero algunos pasajes quedarán levemente desviados.`;
-  } else {
-    note.innerHTML = `Deriva máxima: <b>${maxDrift.toFixed(1)} ¢</b> — la afinación se mueve de forma audible durante el tema. Esto requeriría corrección por tramos (fuera de esta versión).`;
-  }
+  const driftKey = maxDrift < 3 ? "card.drift.low" : maxDrift < 10 ? "card.drift.mid" : "card.drift.high";
+  note.innerHTML = t(driftKey, { n: maxDrift.toFixed(1) });
 }
 </script>
 </body>
