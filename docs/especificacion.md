@@ -1,9 +1,9 @@
 # Centrail — Especificación del proyecto
 
-**Marca paraguas:** TrainMusiq · **Producto (vagón 1):** Centrail — diagnóstico y corrección de afinación de referencia
-**Versión:** 1.7 · Julio 2026
+**Ecosistema:** trainmusiq (herramientas independientes para aprender/entrenar música, inspiración ferroviaria aplicada donde calza — ver §5) · **Producto (puerta de entrada):** Centrail — diagnóstico y corrección de afinación de referencia
+**Versión:** 1.8 · Julio 2026
 **Autor:** Juanma (Punta Arenas) con Claude
-**Estado:** Prototipo 1 validado. Este documento es el traspaso a la fase de construcción en Claude Code y el norte anti-dispersión del proyecto completo.
+**Estado:** v1 publicada en GitHub Pages (https://trainmusiq.github.io/centrail/). Esta es ahora la especificación viva del repo — la mantiene quien ejecute cada sesión de Claude Code. Documento hermano: `docs/roadmap.md` (el CUÁNDO/ORDEN/POR QUÉ comercial; esta spec es el QUÉ técnico).
 
 **Nombre:** "Centrail" une **cent** (la unidad de medida de la herramienta), **rail** (el universo ferroviario de TrainMusiq) y el eco de "central/centrar" (centrar la afinación: la aguja del dial queda centrada en el riel cuando el tema está afinado). El nombre de trabajo anterior era "Patrón 440"; el prototipo `patron440.html` lo conserva hasta que se porte.
 
@@ -55,10 +55,12 @@ Nota de contexto (investigado julio 2026): para pitch monofónico neural existen
 
 ### 4.1 Motor de corrección
 
-- **Rubber Band compilado a WASM** (existe: rubberband-wasm), modo de máxima calidad. Pitch shift **sin alterar el BPM/tempo** (requisito duro).
+- **Rubber Band compilado a WASM** (existe: rubberband-wasm), modo de máxima calidad (motor "Finer"/R3). Pitch shift **sin alterar el BPM/tempo** (requisito duro) — validado: shift exacto de +100 ¢ sobre tono sintético reproduce con error de +0.017 ¢.
 - **Frecuencia de referencia de destino configurable**: presets 432 / 440 / 442 / 444 Hz + campo de valor libre. Fórmula: shift = 1200 × log2(destino / detectado).
-- Atención a saltos grandes: 440→432 = −31.8 ¢. Verificar calidad en transientes de percusión con el modo HQ de Rubber Band; documentar artefactos si los hay.
-- Alternativa de respaldo si Rubber Band WASM da problemas: SoundTouch.js (calidad menor; solo como plan B documentado).
+- Atención a saltos grandes: 440→432 = −31.8 ¢. Verificado en round-trip sintético (§4.4): error dentro de tolerancia incluso en el salto grande, aunque más cerca del límite que en correcciones leves — vigilar con material real de percusión intensa.
+- Alternativa de respaldo si Rubber Band WASM da problemas: SoundTouch.js (calidad menor; solo como plan B documentado). No se necesitó: Rubber Band funcionó sin problemas.
+- **Seguridad de nivel (implementada v1):** la corrección de pitch puede levantar el pico de la señal (los transientes se redistribuyen). Tras corregir, medir el pico del resultado; si excede 0 dBFS **o** el pico del archivo original, aplicar la reducción de ganancia mínima necesaria para no superar el más bajo de los dos techos, e **informarlo en el resultado en lenguaje humano** ("Se redujo el nivel X dB para evitar recorte" / "...para no superar el nivel del original"). Ver principio general en §4.3.
+- **Transposición por semitonos (candidata v1.x, no en el release inicial):** mismo motor (Rubber Band ya soporta pitchScale arbitrario, no solo el shift fino en cents que usa la corrección de referencia), UI simple (selector de semitonos enteros, ej. −12 a +12). Con saltos grandes (varios semitonos) advertir artefactos audibles según la magnitud del salto — el umbral exacto de advertencia se calibra con material real al implementar (percusión y voz son más sensibles que material armónico sostenido).
 
 ### 4.2 Archivos grandes y formatos
 
@@ -74,6 +76,7 @@ Nota de contexto (investigado julio 2026): para pitch monofónico neural existen
 3. Si corresponde corregir: elegir destino (presets + libre), previsualización A/B (reproducir original vs. corregido de un segmento), luego procesar y descargar.
 4. Consistencia tonal baja → advertir que la medición no es confiable en vez de entregar un número con falsa seguridad.
 5. **Progreso honesto (principio de la casa, mismo espíritu que el diagnóstico):** todo procesamiento muestra progreso REAL — barra con porcentaje verdadero (chunks procesados/total), etapa nombrada (Decodificando / Analizando / Corrigiendo / Codificando) y tiempo restante estimado. Nunca spinner indeterminado. Estados con color de la identidad (§8): ámbar = en progreso, cian = listo, rojo = error con mensaje en lenguaje humano (qué pasó y qué hacer), advertencia = avisos de honestidad (archivo ya afinado, medición no confiable). La app nunca oculta su estado real al usuario. ("Esperando conexión" no existe en la etapa 1 — no hay servidor; se incorpora como estado recién con los tiers de la etapa 2+.)
+6. **Actuar mínimo e informar, nunca preguntar (principio de UX, transversal al ecosistema):** cuando la app debe tomar una decisión técnica para poder entregar un resultado seguro o correcto (ej. reducir ganancia para evitar recorte, §4.1), la toma sola, aplicando el cambio **mínimo** necesario — nunca interrumpe con un diálogo de confirmación. Lo que sí hace siempre es **informar** la decisión en el resultado, en una frase de lenguaje humano (qué se hizo y por qué), nunca en letra chica ni silenciosamente. Este principio es distinto de la honestidad de medición (§3, punto 4 arriba): la honestidad es sobre lo que la app *mide y no sabe con certeza*; "actuar mínimo e informar" es sobre lo que la app *decide y hace* para proteger el resultado. Ambos comparten el mismo espíritu: nunca ocultar, nunca fingir certeza que no existe.
 
 ### 4.4 Definición de "terminado" para v1 (release)
 
@@ -85,17 +88,25 @@ Nota de contexto (investigado julio 2026): para pitch monofónico neural existen
 
 ## 5. Roadmap por etapas (cada etapa = un release publicable, no un feature pendiente)
 
-**Arquitectura de marca:** TrainMusiq es la marca paraguas; cada etapa es un vagón del tren, con nombre propio dentro de la familia ferroviaria. Vagón 1 = **Centrail** (pitch). Los nombres de los vagones 2–4 se deciden al abrir cada etapa. Referencia visual futura (etapa 3): cada vagón un acorde; secuencias de vagones = bloques armónicos que se repiten o varían (la progresión como tren). Identidad del logotipo TrainMusiq: diagonalidad T alta al inicio → q descendente al final (brief para fase Claude Design).
+**Corrección de arquitectura de marca (6 jul 2026, el fundador):** trainmusiq **no** es "cada herramienta un vagón del tren". Es un **ecosistema de herramientas independientes** para aprender/entrenar música, con inspiración ferroviaria aplicada donde calza naturalmente en cada una — no como estructura obligatoria. La metáfora profunda del tren pertenece a la **armonía funcional**: la progresión de acordes ES el tren — cada acorde un vagón, la concatenación es el viaje (la música como arte temporal que te lleva por paisajes lo que dura la canción). Esa imagen es material central de identidad para la herramienta de acordes (etapa 3), no un molde para nombrar todo el ecosistema. Herramientas del ecosistema (nombres candidatos, cada una su propio repo bajo la org `trainmusiq`, compartiendo el motor de `engine/`):
 
-**Etapa 1 — Pitch (gratis, el regalo al mundo).** Detección + corrección client-side. Descrita arriba. No se abre la etapa 2 hasta publicar esta.
+- **centrail** (publicada) — afinación de referencia: el riel que guía/tempera la canción. Es la **puerta de entrada** al ecosistema.
+- **trackjunction** (candidato, etapa 2) — el empalme que divide la canción en vías: stems + estudio (mute/solo, cambio de tempo, loops).
+- **chordtrain** (candidato, etapa 3) — entrenar acordes y el tren armónico: detección, análisis funcional, transposición, repositorio de posiciones.
+- **triptheory** (candidato, horizonte) — la teoría para el viaje musical: pedagogía anclada a las canciones del usuario.
+- **pianowagon** (candidato, etapa 4) — trasponer al piano los acordes del tren: tablatura con digitación.
 
-**Etapa 2 — Stems.** Integrar motor existente, no reinventar: demucs.cpp (WASM) o demucs-rs (WebGPU, más rápido, marzo 2026). Modelo por defecto htdemucs_ft. Tier navegador: gratis y lento (minutos). Tier servidor propio con GPU: segundos (ver §7). Habilita el **refinamiento de pitch por stem** (PESTO sobre voz/instrumento aislado) como feature premium.
+Detalle completo de la escalera de versiones, monetización y secuencia de sesiones: `docs/roadmap.md`. Regla madre (inmutable): no se abre una etapa sin publicar la anterior; nada entra a una versión en construcción — lo nuevo se anota en el roadmap y espera.
 
-**Etapa 3 — Acordes.** Referencia open source: ChordMini (301 etiquetas: 12 tonalidades × 25 tipos, incluyendo séptimas, suspendidos, disminuidos, con beat tracking). Las alteraciones/extensiones van desde la primera versión funcional (requisito de Juanma), aunque comercialmente puedan segmentarse después (triadas gratis / extensiones premium).
+**Etapa 1 — Pitch (gratis, el regalo al mundo).** Detección + corrección client-side. Descrita arriba. **Publicada.** No se abre la etapa 2 hasta agotar el pulido v1.1 (ver roadmap).
 
-**Etapa 4 — Piano tab con digitación.** Pipeline: audio → MIDI con Basic Pitch (Spotify, corre en navegador con TensorFlow.js) → algoritmo de digitación (programación dinámica minimizando costo de movimiento de mano; referencia académica: dataset PIG). Visualización: grilla beats (columnas) × notas (filas) con número de dedo por celda — modelo de la planilla Excel del amigo pianista, quien actúa como evaluador experto en la iteración.
+**Etapa 2 — Stems (trackjunction).** Integrar motor existente, no reinventar: demucs.cpp (WASM) o demucs-rs (WebGPU, más rápido, marzo 2026) — decisión técnica con benchmark propio al abrir la etapa. Modelo por defecto htdemucs_ft. Tier navegador: gratis y lento (minutos). Tier servidor propio con GPU: segundos (ver §7). Habilita el **refinamiento de pitch por stem** (PESTO sobre voz/instrumento aislado, excluyendo batería — resuelve estructuralmente el hallazgo de R bajo por percusión de §3) como feature premium.
 
-**Horizonte (post-etapa 4, investigación).** Análisis musicológico: progresiones, cadencias, numerales romanos con music21 (MIT); corpus anotado de los Beatles (Isophonics, ~180 canciones) como banco de pruebas. Music emotion recognition (modelos Essentia) para la línea "efecto de la música en humanos". **Vagón pedagógico**: programa de aprendizaje de teoría musical — no replicar musictheory.net (gratuito e imbatible en lo genérico), sino lo que nadie hace: enseñar teoría a través de la música que el usuario sube, con lecciones ancladas al análisis de los vagones 3-4 ("esta es la cadencia que acabas de escuchar en tu canción y así funciona"). Doble sentido de la marca: train = tren y entrenar. Requiere vagones 3-4 publicados. No comprometer fechas.
+**Etapa 3 — Acordes (chordtrain).** Referencia open source: ChordMini (301 etiquetas: 12 tonalidades × 25 tipos, incluyendo séptimas, suspendidos, disminuidos, con beat tracking). Las alteraciones/extensiones van desde la primera versión funcional (requisito de Juanma), aunque comercialmente puedan segmentarse después (triadas gratis / extensiones premium). **Detección de tonalidad (key) global** entra aquí (vía perfiles de croma sobre los acordes ya detectados) — casi gratis una vez que existe el pipeline de acordes; no se adelanta a etapa 1 porque el método espectral de Centrail es intencionalmente independiente de la tonalidad (§3) y no la necesita para medir afinación.
+
+**Etapa 4 — Piano tab con digitación (pianowagon).** Pipeline: audio → MIDI con Basic Pitch (Spotify, corre en navegador con TensorFlow.js) → algoritmo de digitación (programación dinámica minimizando costo de movimiento de mano; referencia académica: dataset PIG). Visualización: grilla beats (columnas) × notas (filas) con número de dedo por celda — modelo de la planilla Excel del amigo pianista, quien actúa como evaluador experto en la iteración.
+
+**Horizonte (post-etapa 4, investigación).** Análisis musicológico: progresiones, cadencias, numerales romanos con music21 (MIT); corpus anotado de los Beatles (Isophonics, ~180 canciones) como banco de pruebas. Music emotion recognition (modelos Essentia) para la línea "efecto de la música en humanos". **triptheory (pedagógico)**: programa de aprendizaje de teoría musical — no replicar musictheory.net (gratuito e imbatible en lo genérico), sino lo que nadie hace: enseñar teoría a través de la música que el usuario sube, con lecciones ancladas al análisis de chordtrain/pianowagon ("esta es la cadencia que acabas de escuchar en tu canción y así funciona"). Doble sentido de la marca: train = tren y entrenar. Requiere chordtrain publicado. No comprometer fechas.
 
 ## 6. Modelo de tiers (hipótesis a validar, no dogma)
 
@@ -120,7 +131,7 @@ El prototipo estableció una dirección: **instrumento de banco de pruebas** —
 ## 9. Riesgos y decisiones abiertas
 
 - **Licencia**: decidida — GPL v3 (Rubber Band es GPL; coherente con "regalo al mundo").
-- **Memoria en navegador** con FLAC 24/96 largos: mitigado por chunks + workers; probar temprano con el archivo más pesado disponible.
+- **Memoria en navegador** con FLAC 24/96 largos: mitigado por chunks + workers; stress test hecho con un FLAC sintético 24-bit/96kHz de 12 minutos generado con el propio encoder — diagnose + correct + export completan sin problemas de memoria (heap del hilo principal con margen amplio; el procesamiento pesado vive aislado en el Worker). `analyze()` fue optimizado para hacer el downmix a mono por ventana en vez de crear un buffer del archivo completo (ahorra ~duplicar el tamaño del audio en RAM en archivos largos). Pendiente: repetir con un archivo real (no sintético) de esa duración/resolución si aparece uno disponible.
 - **Drift alto** (>10 ¢): la corrección por tramos queda fuera de v1; v1 solo lo diagnostica y lo dice.
 - **Dispersión** (riesgo #1 del proyecto según el propio Juanma): la regla es una sola — **no se abre una etapa sin publicar la anterior**. Aplica también dentro de cada etapa: nada se agrega a la definición de "terminado" (§4.4) una vez iniciada la construcción; lo nuevo va a v1.x.
 
@@ -137,6 +148,6 @@ El prototipo estableció una dirección: **instrumento de banco de pruebas** —
 
 - **Cuenta GitHub (la joya de la corona):** 2FA activado en `regeneracion-hub` (hecho, julio 2026) + **códigos de recuperación guardados offline**. Quien controla la cuenta puede publicar código malicioso a todos los usuarios; es el activo a proteger sobre todos los demás.
 - **Cadena de suministro (dependencias npm):** vendorizar con versiones fijadas (práctica ya en uso: rubberband-wasm, @wasm-audio-decoders/flac); mínimo de dependencias; activar **Dependabot alerts** en el repo; no actualizar dependencias sin revisar changelog. Los decodificadores y el motor corren en WASM (sandbox del navegador): un archivo de audio malformado, en el peor caso, cae la pestaña del propio usuario — riesgo aceptable.
-- **COOP/COEP (verificar en sesión 2, ANTES de construir):** si rubberband-wasm usa hilos (SharedArrayBuffer), requiere headers Cross-Origin-Opener-Policy/Cross-Origin-Embedder-Policy que **GitHub Pages no permite configurar**. Soluciones conocidas: `coi-serviceworker` (service worker que inyecta los headers) o usar el build single-thread. Decidir con evidencia, no descubrirlo al publicar.
+- **COOP/COEP — resuelto (verificado en sesión, con evidencia):** ni `rubberband-wasm` ni el decodificador FLAC (`@wasm-audio-decoders/flac`) usan `SharedArrayBuffer` ni hilos — confirmado inspeccionando los imports del módulo WASM (solo syscalls WASI estándar), el build script fuente (sin flags `-pthread`/`USE_PTHREADS`), y empíricamente (`exports.memory.buffer instanceof SharedArrayBuffer` → `false`). No se necesitan headers COOP/COEP ni `coi-serviceworker`. Verificado también específicamente en GitHub Pages: `.mjs` se sirve como `text/javascript`, `.wasm` como `application/wasm` — todo funciona sin configuración adicional. Repetir esta verificación para cualquier dependencia WASM nueva (ej. al elegir el motor de stems en etapa 2).
 - **Sin recursos externos en producción:** auto-hostear tipografías (no Google Fonts CDN) y todo asset — mejor privacidad, sin dependencia de terceros, GDPR-friendly para usuarios europeos.
 - **Cuando llegue el servidor (etapa 2+, tier de pago):** ahí comienza la seguridad seria — autenticación, manejo de uploads, procesamiento de pagos, rate limiting. No subestimar; presupuestar tiempo específico al abrir esa etapa.
