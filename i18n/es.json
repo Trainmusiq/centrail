@@ -73,6 +73,15 @@
 
   "again.button": "ANALIZAR OTRO ARCHIVO",
 
+  "preview.button": "▶ PREVIEW A/B (8 s)",
+  "preview.buttonBusy": "Preparando preview…",
+  "preview.blindLabel": "Comparación a ciegas",
+  "preview.playA": "A",
+  "preview.playB": "B",
+  "preview.reveal": "Revelar",
+  "preview.revealed.aOriginal": "A = original, B = corregido",
+  "preview.revealed.bOriginal": "B = original, A = corregido",
+
   "howItMeasures.summary": "Cómo mide",
   "howItMeasures.p1": "El detector recorre el tema tomando ventanas de audio distribuidas a lo largo de toda su duración. A cada ventana le aplica una <b>FFT con ventana de Hann</b> y refina la frecuencia de cada pico espectral con interpolación parabólica, logrando resolución muy por debajo del ancho de un bin.",
   "howItMeasures.p2": "Cada pico se compara contra la nota más cercana de la escala temperada afinada en <b>A = 440 Hz</b>, y su desviación en cents (módulo 100, con matemática circular) alimenta un histograma ponderado por energía. El máximo del histograma, refinado con media circular, entrega el desplazamiento global; el patrón de referencia es 440 × 2^(desviación/1200). Este método es independiente de la tonalidad del tema y no requiere separar instrumentos.",

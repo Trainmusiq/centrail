@@ -73,6 +73,15 @@
 
   "again.button": "ANALYZE ANOTHER FILE",
 
+  "preview.button": "▶ A/B PREVIEW (8 s)",
+  "preview.buttonBusy": "Preparing preview…",
+  "preview.blindLabel": "Blind comparison",
+  "preview.playA": "A",
+  "preview.playB": "B",
+  "preview.reveal": "Reveal",
+  "preview.revealed.aOriginal": "A = original, B = corrected",
+  "preview.revealed.bOriginal": "B = original, A = corrected",
+
   "howItMeasures.summary": "How it measures",
   "howItMeasures.p1": "The detector scans the track taking audio windows spread across its full duration. Each window gets an <b>FFT with a Hann window</b>, and each spectral peak's frequency is refined with parabolic interpolation, reaching resolution well below a single bin's width.",
   "howItMeasures.p2": "Each peak is compared against the nearest note on the A = 440 Hz tempered scale, and its deviation in cents (modulo 100, with circular math) feeds an energy-weighted histogram. The histogram's peak, refined with a circular mean, gives the global offset; the reference pitch is 440 × 2^(offset/1200). This method is key-independent and doesn't require separating instruments.",

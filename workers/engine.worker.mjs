@@ -84,6 +84,41 @@ async function diagnose({ fileName, format, bytes, decoded }) {
   });
 }
 
+const PREVIEW_SEGMENT_SECONDS = 8;
+
+/**
+ * Previsualización A/B (§4.3): corrige solo un segmento corto (no todo el
+ * archivo) para poder comparar original vs. corregido antes de procesar
+ * completo. Usa el mismo motor y la misma seguridad de nivel que la
+ * corrección real, para que lo que se escucha sea representativo.
+ */
+async function preview({ targetHz, detectedRefHz }) {
+  if (!current) throw new Error("No hay archivo decodificado (llama a 'diagnose' primero)");
+
+  const sr = current.sampleRate;
+  const total = current.channelData[0].length;
+  const segLen = Math.min(total, Math.round(PREVIEW_SEGMENT_SECONDS * sr));
+  // segmento representativo: ni el inicio (silencio/fade típico) ni el final
+  const start = Math.min(Math.floor(total * 0.25), total - segLen);
+  const originalSegment = current.channelData.map((ch) => ch.slice(start, start + segLen));
+
+  const pitchScale = targetHz / detectedRefHz;
+  const rbApi = await getRubberBand();
+  const { channelData: correctedSegment } = await pitchShiftOffline(rbApi, {
+    channelData: originalSegment.map((ch) => ch.slice()), // pitchShiftOffline no debe mutar el original
+    sampleRate: sr,
+    pitchScale,
+  });
+  applyPeakSafety(correctedSegment, peakOf(originalSegment));
+
+  const originalBuffers = originalSegment.map((ch) => ch.buffer);
+  const correctedBuffers = correctedSegment.map((ch) => ch.buffer);
+  post(
+    { type: "preview", sampleRate: sr, original: originalBuffers, corrected: correctedBuffers },
+    [...originalBuffers, ...correctedBuffers]
+  );
+}
+
 function chooseExportBitDepth() {
   // 16/24 reales del decodificador propio se preservan; 32 (float, vía decodeAudioData
   // de respaldo para mp3/ogg/m4a) se exporta en 24-bit entero, resolución de sobra.
@@ -150,6 +185,8 @@ self.onmessage = async (ev) => {
       await diagnose({ fileName: msg.fileName, format: msg.format, bytes: msg.bytes ? new Uint8Array(msg.bytes) : null, decoded });
     } else if (msg.cmd === "correct") {
       await correct({ targetHz: msg.targetHz, detectedRefHz: msg.detectedRefHz });
+    } else if (msg.cmd === "preview") {
+      await preview({ targetHz: msg.targetHz, detectedRefHz: msg.detectedRefHz });
     }
   } catch (err) {
     post({ type: "error", message: (err && err.message) || String(err) });

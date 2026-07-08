@@ -164,6 +164,32 @@
   .free-freq input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .free-freq input:focus { outline: 2px solid var(--cyan); outline-offset: 1px; }
   .shift-note { font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim); margin: 10px 0 14px; }
+
+  .preview-ab { margin: 4px 0 16px; }
+  .preview-controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .preview-btn {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+    padding: 8px 16px; border-radius: 8px; cursor: pointer;
+  }
+  .preview-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .preview-btn:disabled { opacity: 0.4; cursor: default; }
+  .blind-toggle { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-dim); cursor: pointer; }
+  .preview-players { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .play-btn {
+    font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: 0.06em;
+    background: var(--panel-2); border: 1px solid var(--cyan); color: var(--cyan);
+    padding: 10px 20px; border-radius: 8px; cursor: pointer; min-width: 64px;
+  }
+  .play-btn:hover { background: rgba(95,212,196,0.1); }
+  .play-btn.playing { background: var(--cyan); color: #16181d; }
+  .reveal-btn {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.04em;
+    background: none; border: 1px solid var(--line); color: var(--ink-dim);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  }
+  .reveal-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .reveal-text { font-family: var(--mono); font-size: 12px; color: var(--amber); }
   .go button {
     font-family: var(--mono); font-size: 13px; letter-spacing: 0.06em;
     background: var(--amber); border: none; color: #16181d; font-weight: 600;
@@ -301,6 +327,20 @@
           <span>Hz</span>
         </div>
         <div class="shift-note" id="shiftNote"></div>
+
+        <div class="preview-ab">
+          <div class="preview-controls">
+            <button class="preview-btn" id="previewBtn" type="button" data-i18n="preview.button"></button>
+            <label class="blind-toggle"><input type="checkbox" id="blindMode"><span data-i18n="preview.blindLabel"></span></label>
+          </div>
+          <div class="preview-players" id="previewPlayers" style="display:none">
+            <button class="play-btn" id="playA">A</button>
+            <button class="play-btn" id="playB">B</button>
+            <button class="reveal-btn" id="revealBtn" data-i18n="preview.reveal"></button>
+            <span class="reveal-text" id="revealText"></span>
+          </div>
+        </div>
+
         <div class="go"><button id="goBtn" data-i18n="correct.button"></button></div>
 
         <div class="corrected-result" id="correctedResult" style="display:none">
@@ -335,6 +375,8 @@ const $ = id => document.getElementById(id);
 const drop = $("drop"), fileIn = $("file"), prog = $("prog"), pbar = $("pbar"), pfill = $("pfill"),
       plabel = $("plabel"), result = $("result"), errBox = $("err"), errMsgEl = $("errMsg"),
       errCopyBtn = $("errCopyBtn"), goBtn = $("goBtn");
+const previewBtn = $("previewBtn"), blindMode = $("blindMode"), previewPlayers = $("previewPlayers"),
+      playA = $("playA"), playB = $("playB"), revealBtn = $("revealBtn"), revealText = $("revealText");
 
 let worker = null;
 let currentFileName = "";
@@ -342,6 +384,12 @@ let currentFileInfo = null; // { format, sizeBytes }
 let lastDiagnosis = null;
 let selectedTargetHz = 440;
 let lastErrorDiagnostic = "";
+
+// ── Previsualización A/B (§4.3) ──
+let previewAudioCtx = null;
+let previewBuffers = null; // { original: AudioBuffer, corrected: AudioBuffer }
+let previewMap = null; // { A: "original"|"corrected", B: "original"|"corrected" }
+let previewSource = null; // nodo en reproducción, para poder detenerlo
 
 // ── i18n (§4.4): arquitectura lista para los 10 idiomas de v1.1 — agregar un
 // idioma es sumar i18n/{code}.json + una entrada en engine/i18n.mjs. ──
@@ -537,11 +585,63 @@ goBtn.addEventListener("click", () => {
   worker.postMessage({ cmd: "correct", targetHz: selectedTargetHz, detectedRefHz: lastDiagnosis.detectedRefHz });
 });
 
+function stopPreviewPlayback() {
+  if (previewSource) {
+    try { previewSource.stop(); } catch (e) { /* ya detenido */ }
+    previewSource = null;
+  }
+  playA.classList.remove("playing");
+  playB.classList.remove("playing");
+}
+
+function floatArraysToAudioBuffer(channelBuffers, sampleRate) {
+  if (!previewAudioCtx) previewAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const nCh = channelBuffers.length;
+  const len = channelBuffers[0].byteLength / 4;
+  const buf = previewAudioCtx.createBuffer(nCh, len, sampleRate);
+  for (let c = 0; c < nCh; c++) buf.copyToChannel(new Float32Array(channelBuffers[c]), c);
+  return buf;
+}
+
+function playPreviewLabel(label) {
+  stopPreviewPlayback();
+  const which = previewMap[label]; // "original" | "corrected"
+  const buf = previewBuffers[which];
+  const src = previewAudioCtx.createBufferSource();
+  src.buffer = buf;
+  src.connect(previewAudioCtx.destination);
+  src.onended = () => { (label === "A" ? playA : playB).classList.remove("playing"); };
+  src.start();
+  previewSource = src;
+  (label === "A" ? playA : playB).classList.add("playing");
+}
+
+previewBtn.addEventListener("click", () => {
+  if (!lastDiagnosis || !worker) return;
+  previewBtn.disabled = true;
+  previewBtn.textContent = t("preview.buttonBusy");
+  previewPlayers.style.display = "none";
+  revealText.textContent = "";
+  worker.postMessage({ cmd: "preview", targetHz: selectedTargetHz, detectedRefHz: lastDiagnosis.detectedRefHz });
+});
+
+playA.addEventListener("click", () => playPreviewLabel("A"));
+playB.addEventListener("click", () => playPreviewLabel("B"));
+
+revealBtn.addEventListener("click", () => {
+  revealText.textContent = t(previewMap.A === "original" ? "preview.revealed.aOriginal" : "preview.revealed.bOriginal");
+});
+
 async function run(file) {
   errBox.classList.remove("on");
   result.classList.remove("on");
   $("correctedResult").style.display = "none";
   $("downloads").innerHTML = "";
+  stopPreviewPlayback();
+  previewBuffers = null;
+  previewMap = null;
+  previewPlayers.style.display = "none";
+  revealText.textContent = "";
   currentFileName = file.name;
   ui.progress(0.01, "cargando");
 
@@ -595,9 +695,22 @@ function onWorkerMessage(ev) {
     ui.hideProgress();
     renderCorrected(msg);
     goBtn.disabled = false;
+  } else if (msg.type === "preview") {
+    previewBtn.disabled = false;
+    previewBtn.textContent = t("preview.button");
+    previewBuffers = {
+      original: floatArraysToAudioBuffer(msg.original, msg.sampleRate),
+      corrected: floatArraysToAudioBuffer(msg.corrected, msg.sampleRate),
+    };
+    // orden a ciegas: sortea qué lado (A/B) toca cada versión si el toggle está activo
+    const swap = blindMode.checked && Math.random() < 0.5;
+    previewMap = swap ? { A: "corrected", B: "original" } : { A: "original", B: "corrected" };
+    previewPlayers.style.display = "flex";
   } else if (msg.type === "error") {
     showError(t("error.processFailed", { message: msg.message }));
     goBtn.disabled = false;
+    previewBtn.disabled = false;
+    previewBtn.textContent = t("preview.button");
   }
 }
 
