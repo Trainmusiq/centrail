@@ -55,7 +55,7 @@
     cursor: pointer;
     transition: border-color .15s, background .15s;
   }
-  .drop:hover, .drop.over { border-color: var(--cyan); background: var(--panel-2); }
+  .drop:hover { border-color: var(--cyan); background: var(--panel-2); }
   .drop:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
   .drop .big { font-size: 15.5px; margin-bottom: 6px; }
   .drop .fmt { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); letter-spacing: 0.06em; }
@@ -85,6 +85,21 @@
   .plabel { font-family: var(--mono); font-size: 12px; color: var(--ink-dim); margin-top: 14px; }
   .plabel.error { color: var(--red); }
   .plocal-note { font-size: 11.5px; color: var(--ink-dim); margin-top: 16px; line-height: 1.5; }
+
+  /* ── Drag & drop global (§4.3 v1.1): soltar un archivo sobre cualquier pantalla,
+     sin pasar por el botón ni por el estado actual (resultado, error, progreso). ── */
+  .drag-veil {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    align-items: center; justify-content: center; padding: 20px;
+    background: rgba(22, 24, 29, 0.92); backdrop-filter: blur(3px);
+    pointer-events: none;
+  }
+  .drag-veil.on { display: flex; }
+  .drag-veil-inner {
+    border: 2px dashed var(--cyan); border-radius: 16px;
+    padding: 48px 56px; font-size: 18px; font-weight: 600; color: var(--cyan);
+    text-align: center;
+  }
 
   .result { display: none; margin-top: 26px; }
   .result.on { display: block; animation: rise .35s ease; }
@@ -273,6 +288,10 @@
     </div>
   </div>
 
+  <div class="drag-veil" id="dragVeil" aria-hidden="true">
+    <div class="drag-veil-inner" data-i18n="dragVeil.label"></div>
+  </div>
+
   <div class="result" id="result">
     <div class="readout">
       <div class="hz"><span id="hzval">—</span><small> Hz</small></div>
@@ -373,7 +392,7 @@ import { AVAILABLE_LOCALES, loadLocale, detectDefaultLocale, saveLocale, makeTra
 const APP_VERSION = "1.0.0"; // sincronizado con package.json — scripts/bump-cache-version.sh lo actualiza
 
 const $ = id => document.getElementById(id);
-const drop = $("drop"), fileIn = $("file"), prog = $("prog"), pbar = $("pbar"), pfill = $("pfill"),
+const drop = $("drop"), fileIn = $("file"), dragVeil = $("dragVeil"), prog = $("prog"), pbar = $("pbar"), pfill = $("pfill"),
       plabel = $("plabel"), result = $("result"), errBox = $("err"), errMsgEl = $("errMsg"),
       errCopyBtn = $("errCopyBtn"), goBtn = $("goBtn");
 const previewBtn = $("previewBtn"), blindMode = $("blindMode"), previewPlayers = $("previewPlayers"),
@@ -537,9 +556,35 @@ errCopyBtn.addEventListener("click", async () => {
 
 drop.addEventListener("click", () => fileIn.click());
 drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileIn.click(); } });
-["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
-["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
-drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) run(f); });
+
+// ── Drag & drop global (§4.3 v1.1): soltar un archivo sobre CUALQUIER pantalla
+// dispara el análisis directamente, sin pasar por el botón ni depender del estado
+// actual (resultado, error, progreso ya visibles). Contador de dragenter/dragleave
+// porque esos eventos se disparan por cada elemento hijo que el cursor atraviesa.
+let dragDepth = 0;
+function isFileDrag(e) {
+  return e.dataTransfer && Array.from(e.dataTransfer.types || []).includes("Files");
+}
+window.addEventListener("dragenter", e => {
+  if (!isFileDrag(e)) return;
+  e.preventDefault();
+  dragDepth++;
+  dragVeil.classList.add("on");
+});
+window.addEventListener("dragover", e => { if (isFileDrag(e)) e.preventDefault(); });
+window.addEventListener("dragleave", e => {
+  if (!isFileDrag(e)) return;
+  dragDepth = Math.max(0, dragDepth - 1);
+  if (dragDepth === 0) dragVeil.classList.remove("on");
+});
+window.addEventListener("drop", e => {
+  if (!isFileDrag(e)) return;
+  e.preventDefault();
+  dragDepth = 0;
+  dragVeil.classList.remove("on");
+  const f = e.dataTransfer.files[0];
+  if (f) run(f);
+});
 fileIn.addEventListener("change", () => { if (fileIn.files[0]) run(fileIn.files[0]); });
 $("again").addEventListener("click", () => {
   result.classList.remove("on");

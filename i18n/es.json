@@ -4,6 +4,7 @@
   "drop.title": "Suelta un archivo de audio aquí, o haz clic para elegirlo",
   "drop.formats": "WAV · FLAC · MP3 · OGG · M4A — el archivo no sale de tu equipo",
   "drop.aria": "Cargar archivo de audio",
+  "dragVeil.label": "Suelta para analizar",
 
   "progress.stage.cargando": "Cargando",
   "progress.stage.decodificando": "Decodificando",
