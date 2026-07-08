@@ -7,7 +7,15 @@ import fs from "node:fs";
 import { decodeFlacFile, loadRubberBandModule, centsOf, circularDiff, fmtDur } from "./lib.mjs";
 import { analyze } from "../engine/detect.mjs";
 import { pitchShiftOffline } from "../engine/correct.mjs";
-import { encodeWav } from "../engine/wav.mjs";
+import { decodeWav, encodeWav } from "../engine/wav.mjs";
+
+async function decodeInputFile(filePath) {
+  if (filePath.toLowerCase().endsWith(".wav")) {
+    const bytes = fs.readFileSync(filePath);
+    return decodeWav(new Uint8Array(bytes).buffer);
+  }
+  return decodeFlacFile(filePath);
+}
 
 function parseArgs(argv) {
   const args = { _: [] };
@@ -28,7 +36,7 @@ async function main() {
   }
 
   console.log(`Decodificando ${filePath}…`);
-  const { channelData, sampleRate } = await decodeFlacFile(filePath);
+  const { channelData, sampleRate } = await decodeInputFile(filePath);
   const dur = channelData[0].length / sampleRate;
   console.log(`   ${sampleRate} Hz, ${channelData.length} canal(es), ${fmtDur(dur)}`);
 
