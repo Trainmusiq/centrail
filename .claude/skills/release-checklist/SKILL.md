@@ -54,4 +54,4 @@ Reportar cada punto con ✓ (cumplido y verificado), ✗ (no cumplido), o ⚠ (c
 
 ## 7. Reporte final
 
-Formato corto: qué se hizo (con commits), el checklist de arriba, y qué queda pendiente con su porqué (no solo "queda pendiente" — explicar la razón, ej. "falta material real de R alto, no disponible en esta sesión"). Ver también la sección "Al cerrar cada sesión" de `docs/CLAUDE.md`.
+Formato corto: qué se hizo (con commits), el checklist de arriba, y qué queda pendiente con su porqué (no solo "queda pendiente" — explicar la razón, ej. "falta material real de R alto, no disponible en esta sesión"). Ver también la sección "Al cerrar cada sesión" de `CLAUDE.md`.
