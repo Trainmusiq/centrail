@@ -18,8 +18,8 @@ async function main() {
   console.log("Analizando…");
   const r = await analyze({ channelData, sampleRate });
   console.log(`\nPatrón detectado: ${r.refHz.toFixed(2)} Hz (${r.offset >= 0 ? "+" : ""}${r.offset.toFixed(2)} ¢)`);
-  console.log(`Incertidumbre: ± ${r.unc.toFixed(2)} ¢`);
-  console.log(`Consistencia tonal (R): ${(r.R * 100).toFixed(1)} % (${r.R > 0.35 ? "alta" : r.R > 0.15 ? "media" : "baja"})`);
+  console.log(`Incertidumbre (repetibilidad entre mitades): ± ${r.unc.toFixed(2)} ¢ (splitDiff=${r.splitDiff === null ? "n/a" : r.splitDiff.toFixed(2) + "¢"})`);
+  console.log(`Consistencia tonal (R): ${(r.R * 100).toFixed(1)} % (${r.R > 0.15 ? "alta" : r.R > 0.05 ? "media" : "baja"})`);
   console.log(`Ventanas analizadas: ${r.nFrames}`);
   const maxDrift = Math.max(...r.segs.filter(Boolean).map(s => Math.abs(s.off - r.offset)));
   console.log(`Deriva máxima: ${maxDrift.toFixed(2)} ¢`);

@@ -70,6 +70,7 @@ async function diagnose({ fileName, format, bytes, decoded }) {
     refHz: r.refHz,
     offset: r.offset,
     unc: r.unc,
+    splitDiff: r.splitDiff,
     R: r.R,
     nFrames: r.nFrames,
     hist: Array.from(r.hist),

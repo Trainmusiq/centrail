@@ -35,7 +35,7 @@
   "verdict.centsPhrase.above": "above",
   "verdict.centsPhrase.below": "below",
 
-  "honesty.lowConf": "Low tonal consistency ({r}%): this measurement isn't reliable.",
+  "honesty.lowConf": "The measurement varies {unc} ¢ between different parts of the file: not reliable.",
   "honesty.alreadyTuned": "Already in tune. Correcting it can only degrade it.",
   "honesty.levelReduced": "Level reduced by {db} dB to {reason}.",
   "honesty.levelReason.clip": "avoid clipping",
@@ -85,7 +85,8 @@
   "howItMeasures.summary": "How it measures",
   "howItMeasures.p1": "The detector scans the track taking audio windows spread across its full duration. Each window gets an <b>FFT with a Hann window</b>, and each spectral peak's frequency is refined with parabolic interpolation, reaching resolution well below a single bin's width.",
   "howItMeasures.p2": "Each peak is compared against the nearest note on the A = 440 Hz tempered scale, and its deviation in cents (modulo 100, with circular math) feeds an energy-weighted histogram. The histogram's peak, refined with a circular mean, gives the global offset; the reference pitch is 440 × 2^(offset/1200). This method is key-independent and doesn't require separating instruments.",
-  "howItMeasures.p3": "<b>Tonal consistency</b> shows how concentrated the histogram is: high values mean stable harmonic material; low values can mean heavy percussion, noise, or unstable tuning — not necessarily an ambiguous measurement. The <b>drift</b> panel splits the track into segments and estimates each one's reference pitch.",
+  "howItMeasures.p3": "<b>Tonal consistency (R)</b> shows how concentrated the histogram is, but it has a physical ceiling: even a perfectly tuned solo piano gives R≈20-25% due to the natural inharmonicity of its strings, and vibrato widens the histogram for vocal or bowed-string material without the tuning being wrong. That's why low R doesn't mean an ambiguous measurement, and the color thresholds reflect that real ceiling instead of a synthetic-tone ideal.",
+  "howItMeasures.p3b": "<b>Uncertainty (±)</b> is a more honest confidence measure: it's computed by measuring two independent subsets of windows separately (interleaved across the track) and reporting how much they differ. If both halves agree, the measurement is repeatable even if R is low; if they disagree a lot, the app declares it unreliable. The <b>drift</b> panel splits the track into segments and estimates each one's reference pitch.",
   "howItMeasures.p4": "Correction uses <b>Rubber Band</b> (Finer mode, highest quality) to change pitch without touching tempo. Measuring and correcting always run on the <b>same decode</b> of the file — never measured one way and corrected another.",
 
   "error.unsupportedFormat": "Format not supported in this version ({format}). Available formats: WAV, FLAC, MP3, OGG, M4A.",

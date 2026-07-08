@@ -35,7 +35,7 @@
   "verdict.centsPhrase.above": "sobre",
   "verdict.centsPhrase.below": "bajo",
 
-  "honesty.lowConf": "Consistencia tonal baja ({r}%): esta medición no es confiable.",
+  "honesty.lowConf": "La medición varía {unc} ¢ entre distintas partes del archivo: no es confiable.",
   "honesty.alreadyTuned": "Ya está afinado. Corregirlo solo puede degradarlo.",
   "honesty.levelReduced": "Se redujo el nivel {db} dB para {reason}.",
   "honesty.levelReason.clip": "evitar recorte",
@@ -85,7 +85,8 @@
   "howItMeasures.summary": "Cómo mide",
   "howItMeasures.p1": "El detector recorre el tema tomando ventanas de audio distribuidas a lo largo de toda su duración. A cada ventana le aplica una <b>FFT con ventana de Hann</b> y refina la frecuencia de cada pico espectral con interpolación parabólica, logrando resolución muy por debajo del ancho de un bin.",
   "howItMeasures.p2": "Cada pico se compara contra la nota más cercana de la escala temperada afinada en <b>A = 440 Hz</b>, y su desviación en cents (módulo 100, con matemática circular) alimenta un histograma ponderado por energía. El máximo del histograma, refinado con media circular, entrega el desplazamiento global; el patrón de referencia es 440 × 2^(desviación/1200). Este método es independiente de la tonalidad del tema y no requiere separar instrumentos.",
-  "howItMeasures.p3": "La <b>consistencia tonal</b> indica qué tan concentrado está el histograma: valores altos significan material armónico estable; valores bajos pueden indicar mucha percusión, ruido, o afinación inestable — no necesariamente una medición ambigua. El panel de <b>deriva</b> divide el tema en segmentos y estima el patrón de cada uno.",
+  "howItMeasures.p3": "La <b>consistencia tonal (R)</b> indica qué tan concentrado está el histograma, pero tiene un techo físico: incluso un piano solo perfectamente afinado da R≈20-25% por la inarmonicidad natural de sus cuerdas, y el vibrato ensancha el histograma de material vocal o de cuerdas sin que la afinación esté mal. Por eso R bajo no implica una medición ambigua, y los umbrales de color reflejan ese techo real en vez de un ideal de tono sintético.",
+  "howItMeasures.p3b": "La <b>incertidumbre (±)</b> es una medida más honesta de confianza: se calcula midiendo dos subconjuntos independientes de ventanas por separado (intercaladas a lo largo del tema) y reportando cuánto difieren entre sí. Si ambas mitades coinciden, la medición es repetible aunque R sea bajo; si difieren mucho, la app lo declara no confiable. El panel de <b>deriva</b> divide el tema en segmentos y estima el patrón de cada uno.",
   "howItMeasures.p4": "La corrección usa <b>Rubber Band</b> (modo Finer, máxima calidad) para cambiar el pitch sin alterar el tempo. Medición y corrección siempre operan sobre la <b>misma decodificación</b> del archivo — nunca se mide por un camino y se corrige por otro.",
 
   "error.unsupportedFormat": "Formato no soportado en esta versión ({format}). Formatos disponibles: WAV, FLAC, MP3, OGG, M4A.",

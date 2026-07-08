@@ -360,6 +360,7 @@
     <p data-i18n-html="howItMeasures.p1"></p>
     <p data-i18n-html="howItMeasures.p2"></p>
     <p data-i18n-html="howItMeasures.p3"></p>
+    <p data-i18n-html="howItMeasures.p3b"></p>
     <p data-i18n-html="howItMeasures.p4"></p>
   </details>
 </div>
@@ -717,7 +718,12 @@ function onWorkerMessage(ev) {
 function render(r, name) {
   $("hzval").textContent = r.refHz.toFixed(2);
   const absDev = Math.abs(r.offset);
-  const lowConf = r.R < 0.15;
+  // Confianza real (§3, repetibilidad empírica): se basa en cuánto coincide la medición
+  // entre dos subconjuntos de ventanas independientes, no en la consistencia tonal (R) —
+  // R tiene un techo físico ~20-25% en música real (vibrato, inarmonicidad de piano) que
+  // nada tiene que ver con si la medición es repetible.
+  const lowConf = r.unc > 4;
+  const medConf = !lowConf && r.unc > 1.5;
   const v = $("verdict");
   const dir = t(r.offset > 0 ? "verdict.dir.high" : "verdict.dir.low");
   const cents = t("verdict.centsPhrase", {
@@ -736,17 +742,23 @@ function render(r, name) {
   const honestyBox = $("honestyBox");
   honestyBox.innerHTML = "";
   if (lowConf) {
-    honestyBox.innerHTML = `<div class="honesty low-conf">${t("honesty.lowConf", { r: (r.R * 100).toFixed(0) })}</div>`;
+    honestyBox.innerHTML = `<div class="honesty low-conf">${t("honesty.lowConf", { unc: r.unc.toFixed(1) })}</div>`;
   } else if (absDev < 3 && r.maxDrift < 3) {
     honestyBox.innerHTML = `<div class="honesty">${t("honesty.alreadyTuned")}</div>`;
   }
 
   $("s-ref").textContent = r.refHz.toFixed(2) + " Hz";
   $("s-cents").textContent = (r.offset >= 0 ? "+" : "") + r.offset.toFixed(1) + " ¢";
-  $("s-unc").textContent = r.unc.toFixed(1) + " ¢";
+  const uncEl = $("s-unc");
+  uncEl.textContent = r.unc.toFixed(1) + " ¢";
+  uncEl.className = "v " + (lowConf ? "rd" : medConf ? "am" : "cy");
+  // Umbrales de R recalibrados (§3, hallazgo 8 jul): el techo real en música es ~20-25%
+  // (incluso piano solo perfectamente afinado da R≈20% por inarmonicidad natural) — los
+  // umbrales viejos (0.35/0.15) hacían leer casi todo material real como "media"/"baja".
+  // Referencias de campo: piano solo ≈20%, piano+voz ≈5-11%, mezcla percusiva ≈8%.
   const confEl = $("s-conf");
   confEl.textContent = (r.R * 100).toFixed(0) + " %";
-  confEl.className = "v " + (r.R > 0.35 ? "cy" : r.R > 0.15 ? "am" : "rd");
+  confEl.className = "v " + (r.R > 0.15 ? "cy" : r.R > 0.05 ? "am" : "rd");
   $("s-frames").textContent = String(r.nFrames);
   $("s-name").textContent = name;
   $("s-name").title = name;
@@ -904,7 +916,7 @@ function drawDrift(segs, globalOff) {
   g.stroke();
   segs.forEach((s, i) => {
     if (!s) return;
-    g.fillStyle = s.R > 0.2 ? cyan : dim;
+    g.fillStyle = s.R > 0.1 ? cyan : dim;
     g.beginPath(); g.arc(x(i), y(s.off), 3.2, 0, Math.PI * 2); g.fill();
   });
 

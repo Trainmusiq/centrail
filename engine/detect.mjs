@@ -135,10 +135,16 @@ export async function analyze({ channelData, sampleRate }, onProgress) {
   const hist = new Float64Array(NBINS);
   let sumSin = 0, sumCos = 0, totalW = 0;
   const segHist = Array.from({ length: SEGMENTS }, () => ({ s: 0, c: 0, w: 0 }));
+  // repetibilidad empírica (§3): dos subconjuntos intercalados (ventana par/impar) medidos
+  // por separado. Intercalado en vez de primera/segunda mitad temporal para no confundir
+  // esta métrica con la deriva (que ya se mide aparte en segHist).
+  const halfHist = [new Float64Array(NBINS), new Float64Array(NBINS)];
+  const half = [{ s: 0, c: 0, w: 0 }, { s: 0, c: 0, w: 0 }];
 
   for (let f = 0; f < nFrames; f++) {
     const start = Math.min(usable, Math.round(f * hop));
     const seg = Math.min(SEGMENTS - 1, Math.floor(start / len * SEGMENTS));
+    const half_i = f % 2;
     analyzeFrame(channelData, start, sr, (dev, w) => {
       let bin = Math.round(dev + 49.5);
       if (bin < 0) bin = 0; if (bin >= NBINS) bin = NBINS - 1;
@@ -147,6 +153,9 @@ export async function analyze({ channelData, sampleRate }, onProgress) {
       sumSin += w * Math.sin(th); sumCos += w * Math.cos(th); totalW += w;
       const S = segHist[seg];
       S.s += w * Math.sin(th); S.c += w * Math.cos(th); S.w += w;
+      halfHist[half_i][bin] += w;
+      const H = half[half_i];
+      H.s += w * Math.sin(th); H.c += w * Math.cos(th); H.w += w;
     });
     if (onProgress && ((f & 7) === 7 || f === nFrames - 1)) {
       onProgress(0.15 + 0.85 * (f + 1) / nFrames, `Analizando espectro… ventana ${f + 1} de ${nFrames}`);
@@ -157,9 +166,22 @@ export async function analyze({ channelData, sampleRate }, onProgress) {
   const { offset, R } = circularEstimate(hist, sumSin, sumCos, totalW);
   const refHz = 440 * Math.pow(2, offset / 1200);
 
-  // incertidumbre aproximada: dispersión circular local → error estándar heurístico
+  // incertidumbre real: diferencia entre el offset estimado en cada mitad intercalada.
+  // Reemplaza a la antigua heurística basada solo en R (§3, hallazgo del 8 jul): R bajo
+  // no implica medición ambigua (vibrato, inarmonicidad de piano, percusión de banda ancha
+  // pueden ensanchar el histograma sin desplazar el centro) — la repetibilidad sí lo prueba.
+  let splitDiff = null;
+  if (half[0].w > 0 && half[1].w > 0) {
+    const a = circularEstimate(halfHist[0], half[0].s, half[0].c, half[0].w);
+    const b = circularEstimate(halfHist[1], half[1].s, half[1].c, half[1].w);
+    let d = a.offset - b.offset;
+    splitDiff = Math.abs(((d % 100) + 150) % 100 - 50);
+  }
+  // si alguna mitad no tuvo picos detectables, no se puede verificar repetibilidad:
+  // reportar incertidumbre alta en vez de fingir certeza con la heurística analítica sola.
   const disp = Math.sqrt(Math.max(0, -2 * Math.log(Math.max(1e-6, R)))) * 100 / (2 * Math.PI);
-  const unc = Math.max(0.1, Math.min(25, disp / Math.sqrt(Math.max(1, nFrames))));
+  const analyticUnc = Math.max(0.1, Math.min(25, disp / Math.sqrt(Math.max(1, nFrames))));
+  const unc = splitDiff !== null ? Math.max(0.1, splitDiff) : Math.max(analyticUnc, 8);
 
   const segs = segHist.map(S => {
     if (S.w <= 0) return null;
@@ -169,5 +191,5 @@ export async function analyze({ channelData, sampleRate }, onProgress) {
     return { off: offset + d, R: Math.hypot(S.s, S.c) / S.w };
   });
 
-  return { refHz, offset, R, unc, hist, nFrames, segs, sr, ch, dur: len / sr };
+  return { refHz, offset, R, unc, splitDiff, hist, nFrames, segs, sr, ch, dur: len / sr };
 }
