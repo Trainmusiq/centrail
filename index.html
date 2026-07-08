@@ -179,6 +179,12 @@
   .free-freq input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .free-freq input:focus { outline: 2px solid var(--cyan); outline-offset: 1px; }
   .shift-note { font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim); margin: 10px 0 14px; }
+  .transpose-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .transpose-row select {
+    font-family: var(--mono); font-size: 13px; background: var(--panel-2);
+    border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 8px 10px;
+  }
+  .transpose-row select:focus { outline: 2px solid var(--cyan); outline-offset: 1px; }
 
   .preview-ab { margin: 4px 0 16px; }
   .preview-controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
@@ -364,10 +370,32 @@
 
         <div class="corrected-result" id="correctedResult" style="display:none">
           <div class="stat"><span class="k" data-i18n="correct.resultRef"></span><span class="v cy" id="c-ref">—</span></div>
-          <div class="stat"><span class="k" data-i18n="correct.resultDev"></span><span class="v cy" id="c-dev">—</span></div>
+          <div class="stat" id="devRow"><span class="k" data-i18n="correct.resultDev"></span><span class="v cy" id="c-dev">—</span></div>
+          <div class="stat" id="transposeRow" style="display:none"><span class="k" data-i18n="transpose.resultApplied"></span><span class="v cy" id="c-transpose">—</span></div>
           <div id="levelNote"></div>
           <div class="downloads" id="downloads"></div>
+          <div id="mp3Note"></div>
         </div>
+      </div>
+
+      <div class="card full transpose-card">
+        <h2 data-i18n="transpose.title"></h2>
+        <div class="transpose-row">
+          <select id="semitoneSelect" aria-label="Semitonos">
+            <option value="12">+12</option><option value="11">+11</option><option value="10">+10</option>
+            <option value="9">+9</option><option value="8">+8</option><option value="7">+7</option>
+            <option value="6">+6</option><option value="5">+5</option><option value="4">+4</option>
+            <option value="3">+3</option><option value="2">+2</option><option value="1">+1</option>
+            <option value="0" selected>0</option>
+            <option value="-1">−1</option><option value="-2">−2</option><option value="-3">−3</option>
+            <option value="-4">−4</option><option value="-5">−5</option><option value="-6">−6</option>
+            <option value="-7">−7</option><option value="-8">−8</option><option value="-9">−9</option>
+            <option value="-10">−10</option><option value="-11">−11</option><option value="-12">−12</option>
+          </select>
+          <span class="shift-note" id="transposeNote"></span>
+        </div>
+        <div id="transposeWarning"></div>
+        <div class="go"><button id="transposeBtn" data-i18n="transpose.button"></button></div>
       </div>
     </div>
 
@@ -422,6 +450,23 @@ function applyStaticI18n() {
   document.querySelectorAll("[data-i18n-aria-label]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAriaLabel)); });
 }
 
+// ── Transposición por semitonos (§4.1 v1.1): mismo motor, independiente de la
+// referencia detectada — pitchScale = 2^(semitonos/12) directo. Declarado antes
+// de setLocale() porque esta se llama de inmediato al arrancar (línea de abajo)
+// y su cuerpo llama a updateTransposeNote(). ──
+const semitoneSelectEl = $("semitoneSelect"), transposeBtn = $("transposeBtn");
+const LARGE_JUMP_SEMITONES = 7; // umbral honesto de advertencia (más de un tritono)
+
+function updateTransposeNote() {
+  const n = Number(semitoneSelectEl.value);
+  const shiftCents = n * 100;
+  $("transposeNote").textContent = t("transpose.shiftNote", { n: (n > 0 ? "+" : "") + n, cents: (shiftCents > 0 ? "+" : "") + shiftCents });
+  $("transposeWarning").innerHTML = Math.abs(n) >= LARGE_JUMP_SEMITONES
+    ? `<div class="honesty low-conf">${t("transpose.warning")}</div>`
+    : "";
+}
+semitoneSelectEl.addEventListener("change", updateTransposeNote);
+
 async function setLocale(code) {
   const dict = await loadLocale(code);
   t = makeTranslator(dict);
@@ -429,6 +474,7 @@ async function setLocale(code) {
   document.documentElement.lang = code;
   applyStaticI18n();
   renderLangSwitch(code);
+  updateTransposeNote();
   if (lastDiagnosis) { render(lastDiagnosis, currentFileName); updateShiftNote(); }
 }
 
@@ -631,6 +677,12 @@ goBtn.addEventListener("click", () => {
   worker.postMessage({ cmd: "correct", targetHz: selectedTargetHz, detectedRefHz: lastDiagnosis.detectedRefHz });
 });
 
+transposeBtn.addEventListener("click", () => {
+  if (!lastDiagnosis || !worker) return;
+  transposeBtn.disabled = true;
+  worker.postMessage({ cmd: "correct", semitones: Number(semitoneSelectEl.value) });
+});
+
 function stopPreviewPlayback() {
   if (previewSource) {
     try { previewSource.stop(); } catch (e) { /* ya detenido */ }
@@ -741,6 +793,7 @@ function onWorkerMessage(ev) {
     ui.hideProgress();
     renderCorrected(msg);
     goBtn.disabled = false;
+    transposeBtn.disabled = false;
   } else if (msg.type === "preview") {
     previewBtn.disabled = false;
     previewBtn.textContent = t("preview.button");
@@ -755,6 +808,7 @@ function onWorkerMessage(ev) {
   } else if (msg.type === "error") {
     showError(t("error.processFailed", { message: msg.message }));
     goBtn.disabled = false;
+    transposeBtn.disabled = false;
     previewBtn.disabled = false;
     previewBtn.textContent = t("preview.button");
   }
@@ -822,8 +876,15 @@ function render(r, name) {
 function renderCorrected(msg) {
   $("correctedResult").style.display = "block";
   $("c-ref").textContent = msg.after.refHz.toFixed(2) + " Hz";
-  const dev = 1200 * Math.log2(msg.after.refHz / selectedTargetHz);
-  $("c-dev").textContent = (dev >= 0 ? "+" : "") + dev.toFixed(2) + " ¢";
+  const isTranspose = msg.mode === "transpose";
+  $("devRow").style.display = isTranspose ? "none" : "";
+  $("transposeRow").style.display = isTranspose ? "" : "none";
+  if (isTranspose) {
+    $("c-transpose").textContent = (msg.semitones > 0 ? "+" : "") + msg.semitones;
+  } else {
+    const dev = 1200 * Math.log2(msg.after.refHz / selectedTargetHz);
+    $("c-dev").textContent = (dev >= 0 ? "+" : "") + dev.toFixed(2) + " ¢";
+  }
 
   const levelEl = $("levelNote");
   if (msg.levelNote) {
@@ -835,6 +896,7 @@ function renderCorrected(msg) {
 
   const dl = $("downloads");
   dl.innerHTML = "";
+  let anyLossy = false;
   for (const f of msg.files) {
     const blob = new Blob([f.bytes], { type: f.mime });
     const url = URL.createObjectURL(blob);
@@ -843,7 +905,10 @@ function renderCorrected(msg) {
     a.download = f.name;
     a.textContent = t("correct.download", { name: f.name });
     dl.appendChild(a);
+    if (f.lossy) anyLossy = true;
   }
+  const mp3NoteEl = $("mp3Note");
+  mp3NoteEl.innerHTML = anyLossy ? `<div class="honesty">${t("honesty.mp3Lossy")}</div>` : "";
 }
 
 /* ── Dial de aguja ── */

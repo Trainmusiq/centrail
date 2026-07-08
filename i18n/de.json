@@ -41,6 +41,7 @@
   "honesty.levelReduced": "Der Pegel wurde um {db} dB reduziert, um {reason}.",
   "honesty.levelReason.clip": "Clipping zu vermeiden",
   "honesty.levelReason.original": "den Pegel des Originals nicht zu überschreiten",
+  "honesty.mp3Lossy": "Das MP3 (320 kbps) ist verlustbehaftet; nutze WAV oder FLAC, wenn dir exakte Klangtreue wichtig ist.",
 
   "card.hist.title": "Abweichungshistogramm (Cent relativ zum A440-Raster)",
   "card.measurement.title": "Messung",
@@ -71,6 +72,12 @@
   "correct.resultRef": "Nach Korrektur neu gemessen",
   "correct.resultDev": "Abweichung vom Ziel",
   "correct.download": "{name} herunterladen",
+
+  "transpose.title": "Transponieren (Halbtöne)",
+  "transpose.button": "TRANSPONIEREN UND HERUNTERLADEN",
+  "transpose.shiftNote": "{n} Halbtöne ({cents} ¢) — der erkannte Referenzton ändert sich nicht, nur die Tonhöhe.",
+  "transpose.warning": "Große Tonhöhensprünge können hörbare Artefakte verursachen, besonders bei Gesang und Perkussion.",
+  "transpose.resultApplied": "Angewendete Halbtöne",
 
   "again.button": "ANDERE DATEI ANALYSIEREN",
 

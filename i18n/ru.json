@@ -41,6 +41,7 @@
   "honesty.levelReduced": "Уровень снижен на {db} дБ, чтобы {reason}.",
   "honesty.levelReason.clip": "избежать клиппинга",
   "honesty.levelReason.original": "не превысить уровень оригинала",
+  "honesty.mp3Lossy": "MP3 (320 кбит/с) — формат с потерями; используйте WAV или FLAC, если вам важна точная верность звучания.",
 
   "card.hist.title": "Гистограмма отклонений (центы относительно сетки A440)",
   "card.measurement.title": "Измерение",
@@ -71,6 +72,12 @@
   "correct.resultRef": "Повторно измерено после коррекции",
   "correct.resultDev": "Отклонение от цели",
   "correct.download": "Скачать {name}",
+
+  "transpose.title": "Транспонировать (полутоны)",
+  "transpose.button": "ТРАНСПОНИРОВАТЬ И СКАЧАТЬ",
+  "transpose.shiftNote": "{n} полутон(ов) ({cents} ¢) — обнаруженный эталон не меняется, меняется только высота тона.",
+  "transpose.warning": "Большие скачки высоты тона могут вызвать слышимые артефакты, особенно в вокале и перкуссии.",
+  "transpose.resultApplied": "Применено полутонов",
 
   "again.button": "АНАЛИЗИРОВАТЬ ДРУГОЙ ФАЙЛ",
 

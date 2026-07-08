@@ -41,6 +41,7 @@
   "honesty.levelReduced": "{reason}ため、レベルを{db} dB下げました。",
   "honesty.levelReason.clip": "クリッピングを避ける",
   "honesty.levelReason.original": "元のレベルを超えないようにする",
+  "honesty.mp3Lossy": "MP3（320kbps）は非可逆圧縮です。正確な音質が重要な場合はWAVまたはFLACをご利用ください。",
 
   "card.hist.title": "偏差ヒストグラム（A440グリッドに対するセント）",
   "card.measurement.title": "測定結果",
@@ -71,6 +72,12 @@
   "correct.resultRef": "補正後の再測定値",
   "correct.resultDev": "目標との偏差",
   "correct.download": "{name} をダウンロード",
+
+  "transpose.title": "移調（半音単位）",
+  "transpose.button": "移調してダウンロード",
+  "transpose.shiftNote": "{n}半音（{cents}¢）— 検出された基準ピッチは変わらず、音の高さだけが変わります。",
+  "transpose.warning": "大きな音程移動は、特にボーカルや打楽器で聴き取れるアーティファクトを生じることがあります。",
+  "transpose.resultApplied": "適用した半音数",
 
   "again.button": "別のファイルを解析",
 

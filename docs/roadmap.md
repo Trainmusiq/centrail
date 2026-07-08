@@ -40,11 +40,11 @@ centrail es la **puerta de entrada** al ecosistema; la suscripción se justifica
 
 ### v1.1 — Pulido post-release (1-2 sesiones Sonnet, semana 1-2)
 1. Lo que salga de la semana de uso real del fundador (fuente #1 de verdad).
-2. Previsualización A/B si no entró en sesión B.
-3. **Repetibilidad empírica** como métrica de confianza (medir mitades por separado; §3 de la spec) — sube de prioridad: es el árbitro para archivos de R bajo tipo "Pétalo de Sal" y refuerza el diferenciador #1.
-4. 10 idiomas (es, en, pt-BR, fr, de, it, ja, ko, zh, ru).
-5. **GitHub Sponsors + Ko-fi** en README y footer de la app (primera monetización, costo 20 min, cero fricción con GPL).
-6. MP3 export (lamejs) + transposición por semitonos (mismo motor, UI simple) — ambas ya documentadas en la spec.
+2. ✓ Previsualización A/B.
+3. ✓ **Repetibilidad empírica** como métrica de confianza (medir mitades por separado; §3 de la spec).
+4. ✓ 10 idiomas (es, en, pt-BR, fr, de, it, ja, ko, zh, ru).
+5. ⚠ **GitHub Sponsors + Ko-fi** en README y footer de la app — scaffold listo (`.github/FUNDING.yml` comentado), bloqueado hasta que el fundador cree las cuentas (ninguna existe hoy).
+6. ✓ MP3 export (lamejs) + transposición por semitonos (mismo motor, UI simple).
 
 ### v2.0 — ETAPA 2: trackjunction, el pipeline integrado (3-5 sesiones, semanas 2-5) ⭐ el salto de producto
 **Definición:** dentro de la misma app, tras el diagnóstico: botón "Separar en stems" → 4 stems (voz, batería, bajo, resto) con htdemucs — **procesamiento en el navegador del usuario** (gratis, lento: advertir 10-20 min con progreso honesto por chunk/segmento).
@@ -121,7 +121,7 @@ Cada sesión futura de Claude Code parte con: *"Lee docs/especificacion.md y doc
 
 ## 6. Catálogo de prestaciones del ecosistema (banco de ideas; cada una entra SOLO cuando su versión la abra)
 
-**centrail (pitch):** diagnóstico con incertidumbre y drift ✓ · corrección a referencia libre ✓ · export WAV/FLAC (+MP3 v1.1) · A/B ciego · repetibilidad empírica · transposición por semitonos (mismo motor, gratis) · persistencia de picos / HPSS para material percusivo (v1.x).
+**centrail (pitch):** diagnóstico con incertidumbre y drift ✓ · corrección a referencia libre ✓ · export WAV/FLAC/MP3 ✓ · A/B ciego ✓ · repetibilidad empírica ✓ · transposición por semitonos ✓ · drag & drop global ✓ · persistencia de picos / HPSS para material percusivo (v1.x).
 
 **trackjunction (stems + estudio):** separación 4/6 stems automática (**6 stems como default**: guitarra y piano SIEMPRE separados — ahí vive la complejidad armónica) · detección automática de instrumentos presentes (elige modelo, etiqueta, y **previene stems vacíos/fugados**: solo se separa lo que existe — diferenciador directo vs Moises) · separación fina de guitarras por timbre (eléctrica vs acústica: factible; evaluar modelos entrenados en datasets jerárquicos tipo MoisesDB en el benchmark de la etapa) · **separación de batería en componentes** (bombo/caja/toms/hi-hat/platillos — LarsNet/StemGMD, factible) · presets de uso: karaoke (quitar voz) · rock · pop · **electrónica** (kick protagónico → componentes de batería prioritarios, sintes) · sinfónico (por FAMILIAS: cuerdas/vientos/metales — nunca prometer atriles ni voces internas de una sección; para voces de sección ver transcripción multi-voz en pianowagon/chordtrain) · **cine/locución** (diálogo/música/efectos — modelos dedicados existen; ideal radioteatro/podcast) · mezclador de estudio: mute/solo por stem · **cambio de tempo sin alterar pitch, programable** por ratio (×0.8) O por BPM destino (120→90; requiere beat tracking — motor compartido con chordtrain) · loops A-B · refinamiento de pitch por stem + temperado unificado · export por stem. *Regla de oro comunicable: se separa lo que suena distinto (timbre); lo idéntico no. Horizonte no prometible: instancias del mismo instrumento (guitarra 1 vs 2 del mismo tipo).*
 

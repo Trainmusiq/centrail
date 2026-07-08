@@ -41,6 +41,7 @@
   "honesty.levelReduced": "{reason} 위해 레벨을 {db} dB 낮췄습니다.",
   "honesty.levelReason.clip": "클리핑을 피하기",
   "honesty.levelReason.original": "원본 레벨을 넘지 않기",
+  "honesty.mp3Lossy": "MP3(320kbps)는 손실 압축입니다. 정확한 음질이 중요하다면 WAV나 FLAC를 사용하세요.",
 
   "card.hist.title": "편차 히스토그램 (A440 기준 센트)",
   "card.measurement.title": "측정",
@@ -71,6 +72,12 @@
   "correct.resultRef": "보정 후 재측정값",
   "correct.resultDev": "목표와의 편차",
   "correct.download": "{name} 다운로드",
+
+  "transpose.title": "이조 (반음 단위)",
+  "transpose.button": "이조 후 다운로드",
+  "transpose.shiftNote": "{n}반음 ({cents}¢) — 감지된 기준음은 그대로이고 음높이만 바뀝니다.",
+  "transpose.warning": "큰 음높이 변화는 특히 보컬과 타악기에서 들리는 아티팩트를 만들 수 있습니다.",
+  "transpose.resultApplied": "적용된 반음 수",
 
   "again.button": "다른 파일 분석하기",
 

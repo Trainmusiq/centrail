@@ -41,6 +41,7 @@
   "honesty.levelReduced": "Level reduced by {db} dB to {reason}.",
   "honesty.levelReason.clip": "avoid clipping",
   "honesty.levelReason.original": "not exceed the original's level",
+  "honesty.mp3Lossy": "The MP3 (320 kbps) is lossy; use WAV or FLAC if exact fidelity matters to you.",
 
   "card.hist.title": "Deviation histogram (cents relative to the A440 grid)",
   "card.measurement.title": "Measurement",
@@ -71,6 +72,12 @@
   "correct.resultRef": "Re-measured after correction",
   "correct.resultDev": "Deviation from target",
   "correct.download": "Download {name}",
+
+  "transpose.title": "Transpose (semitones)",
+  "transpose.button": "TRANSPOSE AND DOWNLOAD",
+  "transpose.shiftNote": "{n} semitones ({cents} ¢) — the detected reference doesn't change, only the pitch.",
+  "transpose.warning": "Large pitch jumps can introduce audible artifacts, especially in vocals and percussion.",
+  "transpose.resultApplied": "Semitones applied",
 
   "again.button": "ANALYZE ANOTHER FILE",
 

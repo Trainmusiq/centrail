@@ -41,6 +41,7 @@
   "honesty.levelReduced": "Se redujo el nivel {db} dB para {reason}.",
   "honesty.levelReason.clip": "evitar recorte",
   "honesty.levelReason.original": "no superar el nivel del original",
+  "honesty.mp3Lossy": "El MP3 (320 kbps) tiene pérdida de calidad; usa WAV o FLAC si la fidelidad exacta te importa.",
 
   "card.hist.title": "Histograma de desviación (cents respecto a la rejilla A440)",
   "card.measurement.title": "Medición",
@@ -71,6 +72,12 @@
   "correct.resultRef": "Re-medido tras corrección",
   "correct.resultDev": "Desviación respecto al destino",
   "correct.download": "Descargar {name}",
+
+  "transpose.title": "Transponer (semitonos)",
+  "transpose.button": "TRANSPONER Y DESCARGAR",
+  "transpose.shiftNote": "{n} semitonos ({cents} ¢) — la referencia detectada no cambia, solo el tono.",
+  "transpose.warning": "Los saltos grandes de tono pueden introducir artefactos audibles, sobre todo en voz y percusión.",
+  "transpose.resultApplied": "Semitonos aplicados",
 
   "again.button": "ANALIZAR OTRO ARCHIVO",
 

@@ -41,6 +41,7 @@
   "honesty.levelReduced": "Le niveau a été réduit de {db} dB pour {reason}.",
   "honesty.levelReason.clip": "éviter l'écrêtage",
   "honesty.levelReason.original": "ne pas dépasser le niveau de l'original",
+  "honesty.mp3Lossy": "Le MP3 (320 kbps) est un format avec perte ; utilisez WAV ou FLAC si la fidélité exacte compte pour vous.",
 
   "card.hist.title": "Histogramme d'écart (cents par rapport à la grille A440)",
   "card.measurement.title": "Mesure",
@@ -71,6 +72,12 @@
   "correct.resultRef": "Re-mesuré après correction",
   "correct.resultDev": "Écart par rapport à la cible",
   "correct.download": "Télécharger {name}",
+
+  "transpose.title": "Transposer (demi-tons)",
+  "transpose.button": "TRANSPOSER ET TÉLÉCHARGER",
+  "transpose.shiftNote": "{n} demi-tons ({cents} ¢) — la référence détectée ne change pas, seule la hauteur change.",
+  "transpose.warning": "Les grands sauts de hauteur peuvent introduire des artefacts audibles, surtout sur la voix et les percussions.",
+  "transpose.resultApplied": "Demi-tons appliqués",
 
   "again.button": "ANALYSER UN AUTRE FICHIER",
 

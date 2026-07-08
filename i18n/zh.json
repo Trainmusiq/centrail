@@ -41,6 +41,7 @@
   "honesty.levelReduced": "为{reason}，音量已降低{db} dB。",
   "honesty.levelReason.clip": "避免削波失真",
   "honesty.levelReason.original": "不超过原始音量",
+  "honesty.mp3Lossy": "MP3（320 kbps）是有损格式；如果你在意精确的音质，请使用 WAV 或 FLAC。",
 
   "card.hist.title": "偏差直方图（相对于 A440 网格的音分）",
   "card.measurement.title": "测量结果",
@@ -71,6 +72,12 @@
   "correct.resultRef": "校正后重新测量",
   "correct.resultDev": "与目标的偏差",
   "correct.download": "下载 {name}",
+
+  "transpose.title": "移调（半音）",
+  "transpose.button": "移调并下载",
+  "transpose.shiftNote": "{n} 个半音（{cents} 音分）— 检测到的基准音不变，只改变音高。",
+  "transpose.warning": "较大的音高跳变可能带来可听见的瑕疵，尤其是在人声和打击乐中。",
+  "transpose.resultApplied": "已应用的半音数",
 
   "again.button": "分析其他文件",
 

@@ -5,6 +5,7 @@
 import { decodeFlac } from "../engine/decode.mjs?v=1.0.0";
 import { decodeWav, encodeWav } from "../engine/wav.mjs?v=1.0.0";
 import { encodeFlac } from "../engine/flac-encode.mjs?v=1.0.0";
+import { encodeMp3 } from "../engine/mp3-encode.mjs?v=1.0.0";
 import { analyze } from "../engine/detect.mjs?v=1.0.0";
 import { loadRubberBand, pitchShiftOffline, peakOf, applyPeakSafety } from "../engine/correct.mjs?v=1.0.0";
 
@@ -126,10 +127,14 @@ function chooseExportBitDepth() {
   return current.bitDepth === 16 || current.bitDepth === 24 ? current.bitDepth : 24;
 }
 
-async function correct({ targetHz, detectedRefHz }) {
+async function correct({ targetHz, detectedRefHz, semitones }) {
   if (!current) throw new Error("No hay archivo decodificado (llama a 'diagnose' primero)");
 
-  const pitchScale = targetHz / detectedRefHz;
+  // Transposición (§4.1 v1.1): pitchScale directo por semitonos, independiente
+  // de la referencia detectada — es un cambio de tono relativo, no una corrección
+  // hacia un patrón de afinación. Mismo motor y misma tubería que la corrección.
+  const isTranspose = semitones !== undefined;
+  const pitchScale = isTranspose ? Math.pow(2, semitones / 12) : targetHz / detectedRefHz;
   const rbApi = await getRubberBand();
 
   post({ type: "progress", stage: "corrigiendo", pct: 0 });
@@ -149,7 +154,7 @@ async function correct({ targetHz, detectedRefHz }) {
 
   post({ type: "progress", stage: "codificando", pct: 0.98 });
   const bitDepth = chooseExportBitDepth();
-  const suffix = `_${targetHz}Hz`;
+  const suffix = isTranspose ? `_${semitones >= 0 ? "+" : ""}${semitones}st` : `_${targetHz}Hz`;
   const files = [];
 
   // WAV siempre disponible (§4.2), o "mismo formato" si la entrada ya era WAV.
@@ -162,10 +167,21 @@ async function correct({ targetHz, detectedRefHz }) {
   const flacBitDepth = bitDepth === 16 || bitDepth === 24 ? bitDepth : 24;
   const flacBytes = await encodeFlac({ channelData: corrected, sampleRate: current.sampleRate, bitDepth: flacBitDepth });
   files.push({ name: `${current.fileBaseName}${suffix}.flac`, bytes: flacBytes.buffer, mime: "audio/flac" });
+  await new Promise((r) => setTimeout(r, 0));
+
+  // MP3 320 kbps (§4.2 v1.1) — siempre con pérdida, nunca reemplaza a WAV/FLAC;
+  // el aviso de formato con pérdida se muestra en la UI (lossy: true).
+  const mp3Bytes = await encodeMp3(
+    { channelData: corrected, sampleRate: current.sampleRate, kbps: 320 },
+    (p) => post({ type: "progress", stage: "codificando", pct: 0.98 + 0.02 * p })
+  );
+  files.push({ name: `${current.fileBaseName}${suffix}.mp3`, bytes: mp3Bytes.buffer, mime: "audio/mpeg", lossy: true });
 
   post(
     {
       type: "corrected",
+      mode: isTranspose ? "transpose" : "reference",
+      semitones: isTranspose ? semitones : undefined,
       after: { refHz: after.refHz, offset: after.offset, R: after.R },
       durationSamplesIn: current.channelData[0].length,
       durationSamplesOut: corrected[0].length,
@@ -185,7 +201,7 @@ self.onmessage = async (ev) => {
         : null;
       await diagnose({ fileName: msg.fileName, format: msg.format, bytes: msg.bytes ? new Uint8Array(msg.bytes) : null, decoded });
     } else if (msg.cmd === "correct") {
-      await correct({ targetHz: msg.targetHz, detectedRefHz: msg.detectedRefHz });
+      await correct({ targetHz: msg.targetHz, detectedRefHz: msg.detectedRefHz, semitones: msg.semitones });
     } else if (msg.cmd === "preview") {
       await preview({ targetHz: msg.targetHz, detectedRefHz: msg.detectedRefHz });
     }

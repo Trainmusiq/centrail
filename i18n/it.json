@@ -41,6 +41,7 @@
   "honesty.levelReduced": "Il livello è stato ridotto di {db} dB per {reason}.",
   "honesty.levelReason.clip": "evitare il clipping",
   "honesty.levelReason.original": "non superare il livello dell'originale",
+  "honesty.mp3Lossy": "L'MP3 (320 kbps) è un formato con perdita di qualità; usa WAV o FLAC se la fedeltà esatta è importante per te.",
 
   "card.hist.title": "Istogramma di scostamento (cent rispetto alla griglia A440)",
   "card.measurement.title": "Misurazione",
@@ -71,6 +72,12 @@
   "correct.resultRef": "Rimisurato dopo la correzione",
   "correct.resultDev": "Scostamento dal target",
   "correct.download": "Scarica {name}",
+
+  "transpose.title": "Trasponi (semitoni)",
+  "transpose.button": "TRASPONI E SCARICA",
+  "transpose.shiftNote": "{n} semitoni ({cents} ¢) — il riferimento rilevato non cambia, solo l'intonazione.",
+  "transpose.warning": "Salti grandi di intonazione possono introdurre artefatti udibili, soprattutto su voce e percussioni.",
+  "transpose.resultApplied": "Semitoni applicati",
 
   "again.button": "ANALIZZA UN ALTRO FILE",
 
