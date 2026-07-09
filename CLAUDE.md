@@ -1,7 +1,7 @@
 # CLAUDE.md — centrail / trainmusiq
 
 ## Qué es este proyecto
-Centrail: diagnóstico y corrección de afinación de referencia, 100% client-side, GPL v3, deploy en GitHub Pages (https://trainmusiq.github.io/centrail/). Primera herramienta del ecosistema trainmusiq. ANTES DE CUALQUIER TAREA: lee docs/especificacion.md (el qué), docs/roadmap.md (el orden y porqué) y docs/manual-continuidad.md (método y reglas de decisión).
+Centrail: diagnóstico y corrección de afinación de referencia, 100% client-side, GPL v3, deploy en GitHub Pages (https://trainmusiq.github.io/centrail/). Primera herramienta del ecosistema trainmusiq. ANTES DE CUALQUIER TAREA: lee `docs/especificacion.md` (el qué técnico de Centrail, vive aquí). Los documentos transversales del ecosistema (roadmap, método, identidad) viven en el repo privado `trainmusiq/trainmusiq`, clonado en este equipo en `/Users/juanma/Aat/Trainmusiq/docs/` — léelos ahí, no se duplican en este repo.
 
 ## Comandos
 - Tests: `npm run test:roundtrip` (round-trip sintético; umbral ≤0.1 ¢ en shift de referencia)
@@ -18,7 +18,7 @@ Centrail: diagnóstico y corrección de afinación de referencia, 100% client-si
 7. **Progreso honesto**: toda operación >1s reporta % real, etapa nombrada y ETA. Nunca spinner indeterminado.
 8. **Copy de UI**: sincero, directo y afectivo; disuasivo, no imperativo; nunca sobre-explicado ("Ya está afinado. Déjalo así."). Detalle técnico secundario/expandible.
 9. **Actuar-mínimo-e-informar**: decisiones técnicas (p.ej. reducción por picos) se aplican con el mínimo necesario y se informan; jamás se le preguntan al usuario.
-10. **Nada entra a una versión en construcción**: ideas nuevas → docs/roadmap.md §6.
+10. **Nada entra a una versión en construcción**: ideas nuevas → roadmap.md §6 del repo `trainmusiq/trainmusiq`.
 11. **test/private/ está en .gitignore**: contiene audio con copyright del fundador. JAMÁS commitearlo ni referenciarlo en código público.
 12. **Commits por hito**, mensajes descriptivos, push al cierre de cada hito.
 
