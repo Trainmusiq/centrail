@@ -28,7 +28,7 @@ Resolución de Centrail: décimas de cent. La medición coincide con una herrami
 3. Eliges destino (432/440/442/444 Hz o un valor libre) y corriges sin alterar el tempo (motor [Rubber Band](https://breakfastquay.com/rubberband/), modo de máxima calidad).
 4. Descargas el resultado en WAV y FLAC (mismo formato/resolución cuando la entrada ya es una de las dos).
 
-Disponible en español e inglés (arquitectura lista para 10 idiomas).
+Disponible en 10 idiomas: español, inglés, portugués (Brasil), francés, alemán, italiano, japonés, coreano, chino simplificado y ruso.
 
 ## Motor y arquitectura
 
@@ -38,6 +38,10 @@ Disponible en español e inglés (arquitectura lista para 10 idiomas).
 - Sin build step: HTML/JS/CSS estático, cero dependencias en producción.
 
 Especificación técnica completa: [`docs/especificacion.md`](docs/especificacion.md). Prototipo original de detección (conservado por historia): [`patron440.html`](patron440.html).
+
+## Apoya el proyecto
+
+Centrail es gratis y siempre lo será. Si te sirvió, puedes invitarnos un café en [Ko-fi](https://ko-fi.com/trainmusiq) ☕
 
 ## Licencia
 
@@ -75,7 +79,7 @@ Centrail's resolution: tenths of a cent. The measurement matches an independent 
 3. Pick a target (432/440/442/444 Hz or a free value) and correct without touching tempo (powered by [Rubber Band](https://breakfastquay.com/rubberband/), highest-quality mode).
 4. Download the result as WAV and FLAC (same format/resolution when the input already is one of the two).
 
-Available in Spanish and English (architecture ready for 10 languages).
+Available in 10 languages: Spanish, English, Portuguese (Brazil), French, German, Italian, Japanese, Korean, Simplified Chinese, and Russian.
 
 ## Engine and architecture
 
@@ -85,6 +89,10 @@ Available in Spanish and English (architecture ready for 10 languages).
 - No build step: static HTML/JS/CSS, zero production dependencies.
 
 Full technical spec (Spanish): [`docs/especificacion.md`](docs/especificacion.md). Original detection prototype (kept for history): [`patron440.html`](patron440.html).
+
+## Support the project
+
+Centrail is free and always will be. If it helped, you can buy us a coffee on [Ko-fi](https://ko-fi.com/trainmusiq) ☕
 
 ## License
 

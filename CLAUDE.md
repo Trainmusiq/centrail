@@ -28,6 +28,7 @@ Centrail: diagnóstico y corrección de afinación de referencia, 100% client-si
 - **No crear buffers del archivo completo**: downmix y procesamiento por ventana/chunk (un buffer mono completo de un FLAC 96kHz duplicaba la memoria; corregido el 6 jul).
 - **R bajo (~8%) es normal en material percusivo** y NO invalida la medición (histograma disperso ≠ centro ambiguo); la app lo declara, no lo esconde.
 - **performance.memory no existe en Workers** (al menos en el entorno de pruebas usado).
+- **El throttling de timers en pestañas en background NO afecta al pipeline** (investigado 9 jul con test empírico real de 3:26, foreground 212.3s vs backgrounded 199.0s, sin degradación) — porque todos los `setTimeout(r,0)` de cesión de hilo viven dentro de `workers/engine.worker.mjs`, y los Workers dedicados están exentos del clamp de Chrome. Mantener SIEMPRE el trabajo pesado dentro del Worker, nunca en el hilo principal.
 
 ## Al cerrar cada sesión
 Reportar: checklist de lo pedido con ✓/✗/⚠ (los ⚠ honestos valen más que ✓ de cortesía), commits hechos, y qué quedó pendiente con su porqué. Actualizar docs/especificacion.md si la realidad enseñó algo nuevo (hallazgos con fecha).

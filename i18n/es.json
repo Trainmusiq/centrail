@@ -97,6 +97,8 @@
   "howItMeasures.p3b": "La <b>incertidumbre (±)</b> es una medida más honesta de confianza: se calcula midiendo dos subconjuntos independientes de ventanas por separado (intercaladas a lo largo del tema) y reportando cuánto difieren entre sí. Si ambas mitades coinciden, la medición es repetible aunque R sea bajo; si difieren mucho, la app lo declara no confiable. El panel de <b>deriva</b> divide el tema en segmentos y estima el patrón de cada uno.",
   "howItMeasures.p4": "La corrección usa <b>Rubber Band</b> (modo Finer, máxima calidad) para cambiar el pitch sin alterar el tempo. Medición y corrección siempre operan sobre la <b>misma decodificación</b> del archivo — nunca se mide por un camino y se corrige por otro.",
 
+  "footer.kofi": "Centrail es gratis y siempre lo será. Si te sirvió, puedes invitarnos un café ☕",
+
   "error.unsupportedFormat": "Formato no soportado en esta versión ({format}). Formatos disponibles: WAV, FLAC, MP3, OGG, M4A.",
   "error.loadFailed": "No se pudo cargar el archivo: {message}",
   "error.processFailed": "No se pudo procesar el archivo: {message}",

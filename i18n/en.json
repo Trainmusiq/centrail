@@ -97,6 +97,8 @@
   "howItMeasures.p3b": "<b>Uncertainty (±)</b> is a more honest confidence measure: it's computed by measuring two independent subsets of windows separately (interleaved across the track) and reporting how much they differ. If both halves agree, the measurement is repeatable even if R is low; if they disagree a lot, the app declares it unreliable. The <b>drift</b> panel splits the track into segments and estimates each one's reference pitch.",
   "howItMeasures.p4": "Correction uses <b>Rubber Band</b> (Finer mode, highest quality) to change pitch without touching tempo. Measuring and correcting always run on the <b>same decode</b> of the file — never measured one way and corrected another.",
 
+  "footer.kofi": "Centrail is free and always will be. If it helped, you can buy us a coffee ☕",
+
   "error.unsupportedFormat": "Format not supported in this version ({format}). Available formats: WAV, FLAC, MP3, OGG, M4A.",
   "error.loadFailed": "Couldn't load the file: {message}",
   "error.processFailed": "Couldn't process the file: {message}",

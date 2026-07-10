@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Centrail — Diagnóstico y corrección de afinación de referencia</title>
-<link rel="stylesheet" href="fonts/fonts.css?v=1.1.0">
+<link rel="stylesheet" href="fonts/fonts.css?v=1.1.1">
 <style>
   /* ── Tokens: estética de instrumento de banco de pruebas ──
      fondo grafito, tinta cálida serigrafiada, ámbar de aguja VU,
@@ -263,6 +263,13 @@
     padding: 3px 8px; border-radius: 6px; cursor: pointer; text-transform: uppercase;
   }
   .lang-switch button.active { border-color: var(--cyan); color: var(--cyan); }
+
+  .site-footer { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--line); text-align: center; }
+  .site-footer a {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-dim);
+    text-decoration: none; letter-spacing: 0.02em;
+  }
+  .site-footer a:hover { color: var(--cyan); }
 </style>
 </head>
 <body>
@@ -410,14 +417,18 @@
     <p data-i18n-html="howItMeasures.p3b"></p>
     <p data-i18n-html="howItMeasures.p4"></p>
   </details>
+
+  <footer class="site-footer">
+    <a href="https://ko-fi.com/trainmusiq" target="_blank" rel="noopener" data-i18n="footer.kofi"></a>
+  </footer>
 </div>
 
 <script type="module">
 "use strict";
-import { detectFormat } from "./engine/decode.mjs?v=1.1.0";
-import { AVAILABLE_LOCALES, loadLocale, detectDefaultLocale, saveLocale, makeTranslator } from "./engine/i18n.mjs?v=1.1.0";
+import { detectFormat } from "./engine/decode.mjs?v=1.1.1";
+import { AVAILABLE_LOCALES, loadLocale, detectDefaultLocale, saveLocale, makeTranslator } from "./engine/i18n.mjs?v=1.1.1";
 
-const APP_VERSION = "1.1.0"; // sincronizado con package.json — scripts/bump-cache-version.sh lo actualiza
+const APP_VERSION = "1.1.1"; // sincronizado con package.json — scripts/bump-cache-version.sh lo actualiza
 
 const $ = id => document.getElementById(id);
 const drop = $("drop"), fileIn = $("file"), dragVeil = $("dragVeil"), prog = $("prog"), pbar = $("pbar"), pfill = $("pfill"),
@@ -495,7 +506,7 @@ await setLocale(detectDefaultLocale());
 
 function newWorker() {
   if (worker) worker.terminate();
-  worker = new Worker(new URL("./workers/engine.worker.mjs?v=1.1.0", import.meta.url), { type: "module" });
+  worker = new Worker(new URL("./workers/engine.worker.mjs?v=1.1.1", import.meta.url), { type: "module" });
   worker.onmessage = onWorkerMessage;
   worker.onerror = (e) => showError(t("error.workerError", { message: e.message }));
   return worker;
