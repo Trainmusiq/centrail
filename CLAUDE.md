@@ -21,6 +21,7 @@ Centrail: diagnóstico y corrección de afinación de referencia, 100% client-si
 10. **Nada entra a una versión en construcción**: ideas nuevas → roadmap.md §6 del repo `trainmusiq/trainmusiq`.
 11. **test/private/ está en .gitignore**: contiene audio con copyright del fundador. JAMÁS commitearlo ni referenciarlo en código público.
 12. **Commits por hito**, mensajes descriptivos, push al cierre de cada hito.
+13. **Idioma — español neutro (registrada 15 jul 2026)**: todo texto producido — copy de producto (UI, correos, páginas) Y reportes/comunicaciones de sesión — se escribe en español neutro: tuteo estándar (quieres, suelta, haz clic, puedes), nunca voseo (querés, soltá, hacé, podés) ni regionalismos de ningún país (ver `brief-diseno.md` de `trainmusiq/trainmusiq`).
 
 ## Gotchas pagados (no volver a pagar)
 - **Caché de módulos ES del navegador**: persiste incluso con reload y está atada al origen (puerto). Síntoma: bugs fantasma tras editar módulos (costó ~1h de debugging el 6 jul). Mitigación: server sin caché en dev + cache-busting versionado en producción.
