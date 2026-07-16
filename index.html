@@ -256,13 +256,12 @@
   .err-copy:hover { border-color: var(--cyan); color: var(--cyan); }
   .err-copy.copied { border-color: var(--cyan); color: var(--cyan); }
 
-  .lang-switch { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; justify-content: flex-end; }
-  .lang-switch button {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
-    background: none; border: 1px solid var(--line); color: var(--ink-dim);
-    padding: 3px 8px; border-radius: 6px; cursor: pointer; text-transform: uppercase;
+  .lang-select {
+    margin-top: 8px; font-family: var(--mono); font-size: 11px; background: var(--panel-2);
+    border: 1px solid var(--line); color: var(--ink-dim); padding: 4px 8px;
+    border-radius: 5px; cursor: pointer;
   }
-  .lang-switch button.active { border-color: var(--cyan); color: var(--cyan); }
+  .lang-select:hover { color: var(--ink); border-color: var(--ink-dim); }
 
   .site-footer { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--line); text-align: center; }
   .site-footer a {
@@ -278,7 +277,7 @@
     <h1>Cent<span class="num">rail</span></h1>
     <div>
       <div class="plate" id="plate" data-i18n-html="header.subtitle"></div>
-      <div class="lang-switch" id="langSwitch"></div>
+      <select class="lang-select" id="langSelect" aria-label="Idioma / Language"></select>
     </div>
   </header>
 
@@ -484,23 +483,19 @@ async function setLocale(code) {
   saveLocale(code);
   document.documentElement.lang = code;
   applyStaticI18n();
-  renderLangSwitch(code);
+  langSelectEl.value = code;
   updateTransposeNote();
   if (lastDiagnosis) { render(lastDiagnosis, currentFileName); updateShiftNote(); }
 }
 
-function renderLangSwitch(active) {
-  const el = $("langSwitch");
-  el.innerHTML = "";
-  for (const { code, label } of AVAILABLE_LOCALES) {
-    const btn = document.createElement("button");
-    btn.textContent = code;
-    btn.title = label;
-    btn.className = code === active ? "active" : "";
-    btn.addEventListener("click", () => setLocale(code));
-    el.appendChild(btn);
-  }
+const langSelectEl = $("langSelect");
+for (const { code, label } of AVAILABLE_LOCALES) {
+  const opt = document.createElement("option");
+  opt.value = code;
+  opt.textContent = label;
+  langSelectEl.appendChild(opt);
 }
+langSelectEl.addEventListener("change", () => setLocale(langSelectEl.value));
 
 await setLocale(detectDefaultLocale());
 
@@ -850,12 +845,19 @@ function render(r, name) {
 
   // Honestidad (§4.3): una línea esencial, sin sobre-explicar — el detalle vive en "Cómo mide".
   const honestyBox = $("honestyBox");
-  honestyBox.innerHTML = "";
+  let honestyHtml = "";
   if (lowConf) {
-    honestyBox.innerHTML = `<div class="honesty low-conf">${t("honesty.lowConf", { unc: r.unc.toFixed(1) })}</div>`;
+    honestyHtml += `<div class="honesty low-conf">${t("honesty.lowConf", { unc: r.unc.toFixed(1) })}</div>`;
   } else if (absDev < 3 && r.maxDrift < 3) {
-    honestyBox.innerHTML = `<div class="honesty">${t("honesty.alreadyTuned")}</div>`;
+    honestyHtml += `<div class="honesty">${t("honesty.alreadyTuned")}</div>`;
   }
+  // Persistencia de picos (§3, v1.2): ventanas sin contenido tonal (típico de
+  // intros de percusión pura o silencio) se excluyen de la medición — se declara
+  // siempre que haya al menos una, sin importar el veredicto de arriba.
+  if (r.excludedFrames > 0) {
+    honestyHtml += `<div class="honesty">${t("honesty.excludedFrames", { n: r.excludedFrames })}</div>`;
+  }
+  honestyBox.innerHTML = honestyHtml;
 
   $("s-ref").textContent = r.refHz.toFixed(2) + " Hz";
   $("s-cents").textContent = (r.offset >= 0 ? "+" : "") + r.offset.toFixed(1) + " ¢";

@@ -26,10 +26,10 @@
 
   "verdict.inTune.confident": "Уже настроено. <b>Оставьте как есть.</b>",
   "verdict.inTune.lowConf": "Похоже, настроено верно, но это измерение ненадёжно (см. ниже).",
-  "verdict.slight.confident": "Слегка <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.slight.lowConf": "Похоже, слегка <span class=\"off\">{dir}</span> ({cents}), но измерение ненадёжно.",
-  "verdict.clear.confident": "Явно <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.clear.lowConf": "Похоже, явно <span class=\"off\">{dir}</span> ({cents}), но измерение ненадёжно.",
+  "verdict.slight.confident": "Строй слегка <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.slight.lowConf": "Похоже, строй слегка <span class=\"off\">{dir}</span> ({cents}), но измерение ненадёжно.",
+  "verdict.clear.confident": "Строй явно <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.clear.lowConf": "Похоже, строй явно <span class=\"off\">{dir}</span> ({cents}), но измерение ненадёжно.",
   "verdict.dir.high": "выше",
   "verdict.dir.low": "ниже",
   "verdict.centsPhrase": "{n} центов {dir} 440 Гц",
@@ -42,6 +42,7 @@
   "honesty.levelReason.clip": "избежать клиппинга",
   "honesty.levelReason.original": "не превысить уровень оригинала",
   "honesty.mp3Lossy": "MP3 (320 кбит/с) — формат с потерями; используйте WAV или FLAC, если вам важна точная верность звучания.",
+  "honesty.excludedFrames": "Исключено {n} окон без тонального содержания — типично для перкуссионных интро.",
 
   "card.hist.title": "Гистограмма отклонений (центы относительно сетки A440)",
   "card.measurement.title": "Измерение",

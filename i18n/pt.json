@@ -26,10 +26,10 @@
 
   "verdict.inTune.confident": "Já está afinado. <b>Deixe assim.</b>",
   "verdict.inTune.lowConf": "Parece estar afinado, mas esta medição não é confiável (veja abaixo).",
-  "verdict.slight.confident": "Levemente <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.slight.lowConf": "Parece estar levemente <span class=\"off\">{dir}</span> ({cents}), mas a medição não é confiável.",
-  "verdict.clear.confident": "Claramente <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.clear.lowConf": "Parece estar claramente <span class=\"off\">{dir}</span> ({cents}), mas a medição não é confiável.",
+  "verdict.slight.confident": "Afinação levemente <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.slight.lowConf": "A afinação parece estar levemente <span class=\"off\">{dir}</span> ({cents}), mas a medição não é confiável.",
+  "verdict.clear.confident": "Afinação claramente <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.clear.lowConf": "A afinação parece estar claramente <span class=\"off\">{dir}</span> ({cents}), mas a medição não é confiável.",
   "verdict.dir.high": "alta",
   "verdict.dir.low": "baixa",
   "verdict.centsPhrase": "{n} cents {dir} 440 Hz",
@@ -42,6 +42,7 @@
   "honesty.levelReason.clip": "evitar corte (clipping)",
   "honesty.levelReason.original": "não superar o nível do original",
   "honesty.mp3Lossy": "O MP3 (320 kbps) tem perda de qualidade; use WAV ou FLAC se a fidelidade exata for importante para você.",
+  "honesty.excludedFrames": "Foram excluídas {n} janelas sem conteúdo tonal — típico de introduções de percussão.",
 
   "card.hist.title": "Histograma de desvio (cents em relação à grade A440)",
   "card.measurement.title": "Medição",

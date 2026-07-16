@@ -26,10 +26,10 @@
 
   "verdict.inTune.confident": "已经调准了。<b>保持原样即可。</b>",
   "verdict.inTune.lowConf": "看起来是准的，但这次测量不可靠（详见下文）。",
-  "verdict.slight.confident": "略微<span class=\"off\">{dir}</span>：{cents}。",
-  "verdict.slight.lowConf": "看起来略微<span class=\"off\">{dir}</span>（{cents}），但测量结果不可靠。",
-  "verdict.clear.confident": "明显<span class=\"off\">{dir}</span>：{cents}。",
-  "verdict.clear.lowConf": "看起来明显<span class=\"off\">{dir}</span>（{cents}），但测量结果不可靠。",
+  "verdict.slight.confident": "调音略微<span class=\"off\">{dir}</span>：{cents}。",
+  "verdict.slight.lowConf": "调音看起来略微<span class=\"off\">{dir}</span>（{cents}），但测量结果不可靠。",
+  "verdict.clear.confident": "调音明显<span class=\"off\">{dir}</span>：{cents}。",
+  "verdict.clear.lowConf": "调音看起来明显<span class=\"off\">{dir}</span>（{cents}），但测量结果不可靠。",
   "verdict.dir.high": "偏高",
   "verdict.dir.low": "偏低",
   "verdict.centsPhrase": "比440 Hz{dir}{n}音分",
@@ -42,6 +42,7 @@
   "honesty.levelReason.clip": "避免削波失真",
   "honesty.levelReason.original": "不超过原始音量",
   "honesty.mp3Lossy": "MP3（320 kbps）是有损格式；如果你在意精确的音质，请使用 WAV 或 FLAC。",
+  "honesty.excludedFrames": "已排除 {n} 个无调性内容的窗口 —— 常见于打击乐前奏。",
 
   "card.hist.title": "偏差直方图（相对于 A440 网格的音分）",
   "card.measurement.title": "测量结果",

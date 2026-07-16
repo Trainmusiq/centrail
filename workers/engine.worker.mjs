@@ -74,6 +74,7 @@ async function diagnose({ fileName, format, bytes, decoded }) {
     splitDiff: r.splitDiff,
     R: r.R,
     nFrames: r.nFrames,
+    excludedFrames: r.excludedFrames,
     hist: Array.from(r.hist),
     segs: r.segs,
     maxDrift: maxDriftOf(r),

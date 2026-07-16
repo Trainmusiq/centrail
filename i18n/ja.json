@@ -26,10 +26,10 @@
 
   "verdict.inTune.confident": "すでに正しく調律されています。<b>そのままにしておきましょう。</b>",
   "verdict.inTune.lowConf": "調律は合っているようですが、この測定は信頼できません（下記参照）。",
-  "verdict.slight.confident": "わずかに<span class=\"off\">{dir}</span>：{cents}。",
-  "verdict.slight.lowConf": "わずかに<span class=\"off\">{dir}</span>のようです（{cents}）が、測定は信頼できません。",
-  "verdict.clear.confident": "明確に<span class=\"off\">{dir}</span>：{cents}。",
-  "verdict.clear.lowConf": "明確に<span class=\"off\">{dir}</span>のようです（{cents}）が、測定は信頼できません。",
+  "verdict.slight.confident": "調律がわずかに<span class=\"off\">{dir}</span>：{cents}。",
+  "verdict.slight.lowConf": "調律がわずかに<span class=\"off\">{dir}</span>のようです（{cents}）が、測定は信頼できません。",
+  "verdict.clear.confident": "調律が明確に<span class=\"off\">{dir}</span>：{cents}。",
+  "verdict.clear.lowConf": "調律が明確に<span class=\"off\">{dir}</span>のようです（{cents}）が、測定は信頼できません。",
   "verdict.dir.high": "高め",
   "verdict.dir.low": "低め",
   "verdict.centsPhrase": "440 Hzより{n}セント{dir}",
@@ -42,6 +42,7 @@
   "honesty.levelReason.clip": "クリッピングを避ける",
   "honesty.levelReason.original": "元のレベルを超えないようにする",
   "honesty.mp3Lossy": "MP3（320kbps）は非可逆圧縮です。正確な音質が重要な場合はWAVまたはFLACをご利用ください。",
+  "honesty.excludedFrames": "トーン成分のないウィンドウを{n}個除外しました — パーカッションのイントロによくあるケースです。",
 
   "card.hist.title": "偏差ヒストグラム（A440グリッドに対するセント）",
   "card.measurement.title": "測定結果",

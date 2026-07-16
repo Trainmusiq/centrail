@@ -26,10 +26,10 @@
 
   "verdict.inTune.confident": "Ya está afinado. <b>Déjalo así.</b>",
   "verdict.inTune.lowConf": "Parece estar afinado, pero la medición no es confiable (ver abajo).",
-  "verdict.slight.confident": "Levemente <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.slight.lowConf": "Parece estar levemente <span class=\"off\">{dir}</span> ({cents}), pero la medición no es confiable.",
-  "verdict.clear.confident": "Claramente <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.clear.lowConf": "Parece estar claramente <span class=\"off\">{dir}</span> ({cents}), pero la medición no es confiable.",
+  "verdict.slight.confident": "Afinación levemente <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.slight.lowConf": "La afinación parece estar levemente <span class=\"off\">{dir}</span> ({cents}), pero la medición no es confiable.",
+  "verdict.clear.confident": "Afinación claramente <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.clear.lowConf": "La afinación parece estar claramente <span class=\"off\">{dir}</span> ({cents}), pero la medición no es confiable.",
   "verdict.dir.high": "alta",
   "verdict.dir.low": "baja",
   "verdict.centsPhrase": "{n} cents {dir} 440 Hz",
@@ -42,6 +42,7 @@
   "honesty.levelReason.clip": "evitar recorte",
   "honesty.levelReason.original": "no superar el nivel del original",
   "honesty.mp3Lossy": "El MP3 (320 kbps) tiene pérdida de calidad; usa WAV o FLAC si la fidelidad exacta te importa.",
+  "honesty.excludedFrames": "Se excluyeron {n} ventanas sin contenido tonal — típico de intros de percusión.",
 
   "card.hist.title": "Histograma de desviación (cents respecto a la rejilla A440)",
   "card.measurement.title": "Medición",
@@ -97,7 +98,7 @@
   "howItMeasures.p3b": "La <b>incertidumbre (±)</b> es una medida más honesta de confianza: se calcula midiendo dos subconjuntos independientes de ventanas por separado (intercaladas a lo largo del tema) y reportando cuánto difieren entre sí. Si ambas mitades coinciden, la medición es repetible aunque R sea bajo; si difieren mucho, la app lo declara no confiable. El panel de <b>deriva</b> divide el tema en segmentos y estima el patrón de cada uno.",
   "howItMeasures.p4": "La corrección usa <b>Rubber Band</b> (modo Finer, máxima calidad) para cambiar el pitch sin alterar el tempo. Medición y corrección siempre operan sobre la <b>misma decodificación</b> del archivo — nunca se mide por un camino y se corrige por otro.",
 
-  "footer.kofi": "Centrail es gratis y siempre lo será. Si te sirvió, puedes invitarnos un café ☕",
+  "footer.kofi": "Suscríbete para más opciones y mayor velocidad. Y si con la versión gratuita te basta, siempre puedes invitarnos un café ☕.",
 
   "error.unsupportedFormat": "Formato no soportado en esta versión ({format}). Formatos disponibles: WAV, FLAC, MP3, OGG, M4A.",
   "error.loadFailed": "No se pudo cargar el archivo: {message}",

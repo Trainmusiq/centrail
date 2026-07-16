@@ -26,10 +26,10 @@
 
   "verdict.inTune.confident": "Already in tune. <b>Leave it be.</b>",
   "verdict.inTune.lowConf": "Looks in tune, but this measurement isn't reliable (see below).",
-  "verdict.slight.confident": "Slightly <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.slight.lowConf": "Looks slightly <span class=\"off\">{dir}</span> ({cents}), but this measurement isn't reliable.",
-  "verdict.clear.confident": "Clearly <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.clear.lowConf": "Looks clearly <span class=\"off\">{dir}</span> ({cents}), but this measurement isn't reliable.",
+  "verdict.slight.confident": "Tuning slightly <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.slight.lowConf": "The tuning looks slightly <span class=\"off\">{dir}</span> ({cents}), but this measurement isn't reliable.",
+  "verdict.clear.confident": "Tuning clearly <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.clear.lowConf": "The tuning looks clearly <span class=\"off\">{dir}</span> ({cents}), but this measurement isn't reliable.",
   "verdict.dir.high": "high",
   "verdict.dir.low": "low",
   "verdict.centsPhrase": "{n} cents {dir} 440 Hz",
@@ -42,6 +42,7 @@
   "honesty.levelReason.clip": "avoid clipping",
   "honesty.levelReason.original": "not exceed the original's level",
   "honesty.mp3Lossy": "The MP3 (320 kbps) is lossy; use WAV or FLAC if exact fidelity matters to you.",
+  "honesty.excludedFrames": "{n} windows with no tonal content were excluded — typical of percussion intros.",
 
   "card.hist.title": "Deviation histogram (cents relative to the A440 grid)",
   "card.measurement.title": "Measurement",
@@ -97,7 +98,7 @@
   "howItMeasures.p3b": "<b>Uncertainty (±)</b> is a more honest confidence measure: it's computed by measuring two independent subsets of windows separately (interleaved across the track) and reporting how much they differ. If both halves agree, the measurement is repeatable even if R is low; if they disagree a lot, the app declares it unreliable. The <b>drift</b> panel splits the track into segments and estimates each one's reference pitch.",
   "howItMeasures.p4": "Correction uses <b>Rubber Band</b> (Finer mode, highest quality) to change pitch without touching tempo. Measuring and correcting always run on the <b>same decode</b> of the file — never measured one way and corrected another.",
 
-  "footer.kofi": "Centrail is free and always will be. If it helped, you can buy us a coffee ☕",
+  "footer.kofi": "Subscribe for more options and more speed. And if the free version is already enough for you, you can always buy us a coffee ☕.",
 
   "error.unsupportedFormat": "Format not supported in this version ({format}). Available formats: WAV, FLAC, MP3, OGG, M4A.",
   "error.loadFailed": "Couldn't load the file: {message}",

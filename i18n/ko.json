@@ -26,10 +26,10 @@
 
   "verdict.inTune.confident": "이미 조율되어 있습니다. <b>그대로 두세요.</b>",
   "verdict.inTune.lowConf": "조율된 것처럼 보이지만 이 측정값은 신뢰할 수 없습니다 (아래 참고).",
-  "verdict.slight.confident": "약간 <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.slight.lowConf": "약간 <span class=\"off\">{dir}</span>인 것 같지만 ({cents}), 측정값이 신뢰할 수 없습니다.",
-  "verdict.clear.confident": "확실히 <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.clear.lowConf": "확실히 <span class=\"off\">{dir}</span>인 것 같지만 ({cents}), 측정값이 신뢰할 수 없습니다.",
+  "verdict.slight.confident": "조율이 약간 <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.slight.lowConf": "조율이 약간 <span class=\"off\">{dir}</span>인 것 같지만 ({cents}), 측정값이 신뢰할 수 없습니다.",
+  "verdict.clear.confident": "조율이 확실히 <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.clear.lowConf": "조율이 확실히 <span class=\"off\">{dir}</span>인 것 같지만 ({cents}), 측정값이 신뢰할 수 없습니다.",
   "verdict.dir.high": "높음",
   "verdict.dir.low": "낮음",
   "verdict.centsPhrase": "440 Hz보다 {n} 센트 {dir}",
@@ -42,6 +42,7 @@
   "honesty.levelReason.clip": "클리핑을 피하기",
   "honesty.levelReason.original": "원본 레벨을 넘지 않기",
   "honesty.mp3Lossy": "MP3(320kbps)는 손실 압축입니다. 정확한 음질이 중요하다면 WAV나 FLAC를 사용하세요.",
+  "honesty.excludedFrames": "톤 성분이 없는 창 {n}개를 제외했습니다 — 퍼커션 인트로에서 흔한 경우입니다.",
 
   "card.hist.title": "편차 히스토그램 (A440 기준 센트)",
   "card.measurement.title": "측정",

@@ -26,10 +26,10 @@
 
   "verdict.inTune.confident": "Déjà accordé. <b>Laissez-le tel quel.</b>",
   "verdict.inTune.lowConf": "Semble accordé, mais cette mesure n'est pas fiable (voir ci-dessous).",
-  "verdict.slight.confident": "Légèrement <span class=\"off\">{dir}</span> : {cents}.",
-  "verdict.slight.lowConf": "Semble légèrement <span class=\"off\">{dir}</span> ({cents}), mais la mesure n'est pas fiable.",
-  "verdict.clear.confident": "Nettement <span class=\"off\">{dir}</span> : {cents}.",
-  "verdict.clear.lowConf": "Semble nettement <span class=\"off\">{dir}</span> ({cents}), mais la mesure n'est pas fiable.",
+  "verdict.slight.confident": "Accordage légèrement <span class=\"off\">{dir}</span> : {cents}.",
+  "verdict.slight.lowConf": "L'accordage semble légèrement <span class=\"off\">{dir}</span> ({cents}), mais la mesure n'est pas fiable.",
+  "verdict.clear.confident": "Accordage nettement <span class=\"off\">{dir}</span> : {cents}.",
+  "verdict.clear.lowConf": "L'accordage semble nettement <span class=\"off\">{dir}</span> ({cents}), mais la mesure n'est pas fiable.",
   "verdict.dir.high": "haut",
   "verdict.dir.low": "bas",
   "verdict.centsPhrase": "{n} cents {dir} 440 Hz",
@@ -42,6 +42,7 @@
   "honesty.levelReason.clip": "éviter l'écrêtage",
   "honesty.levelReason.original": "ne pas dépasser le niveau de l'original",
   "honesty.mp3Lossy": "Le MP3 (320 kbps) est un format avec perte ; utilisez WAV ou FLAC si la fidélité exacte compte pour vous.",
+  "honesty.excludedFrames": "{n} fenêtres sans contenu tonal ont été exclues — typique des intros de percussion.",
 
   "card.hist.title": "Histogramme d'écart (cents par rapport à la grille A440)",
   "card.measurement.title": "Mesure",

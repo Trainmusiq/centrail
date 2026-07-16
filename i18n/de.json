@@ -26,10 +26,10 @@
 
   "verdict.inTune.confident": "Bereits gestimmt. <b>Lass es so.</b>",
   "verdict.inTune.lowConf": "Scheint gestimmt zu sein, aber diese Messung ist nicht zuverlässig (siehe unten).",
-  "verdict.slight.confident": "Leicht <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.slight.lowConf": "Scheint leicht <span class=\"off\">{dir}</span> zu sein ({cents}), aber die Messung ist nicht zuverlässig.",
-  "verdict.clear.confident": "Deutlich <span class=\"off\">{dir}</span>: {cents}.",
-  "verdict.clear.lowConf": "Scheint deutlich <span class=\"off\">{dir}</span> zu sein ({cents}), aber die Messung ist nicht zuverlässig.",
+  "verdict.slight.confident": "Stimmung leicht <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.slight.lowConf": "Die Stimmung scheint leicht <span class=\"off\">{dir}</span> zu sein ({cents}), aber die Messung ist nicht zuverlässig.",
+  "verdict.clear.confident": "Stimmung deutlich <span class=\"off\">{dir}</span>: {cents}.",
+  "verdict.clear.lowConf": "Die Stimmung scheint deutlich <span class=\"off\">{dir}</span> zu sein ({cents}), aber die Messung ist nicht zuverlässig.",
   "verdict.dir.high": "hoch",
   "verdict.dir.low": "tief",
   "verdict.centsPhrase": "{n} Cent {dir} 440 Hz",
@@ -42,6 +42,7 @@
   "honesty.levelReason.clip": "Clipping zu vermeiden",
   "honesty.levelReason.original": "den Pegel des Originals nicht zu überschreiten",
   "honesty.mp3Lossy": "Das MP3 (320 kbps) ist verlustbehaftet; nutze WAV oder FLAC, wenn dir exakte Klangtreue wichtig ist.",
+  "honesty.excludedFrames": "{n} Fenster ohne tonalen Inhalt wurden ausgeschlossen — typisch für Percussion-Intros.",
 
   "card.hist.title": "Abweichungshistogramm (Cent relativ zum A440-Raster)",
   "card.measurement.title": "Messung",
