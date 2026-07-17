@@ -98,7 +98,7 @@
   "howItMeasures.p3b": "L'<b>incertezza (±)</b> è una misura di fiducia più onesta: si calcola misurando separatamente due sottoinsiemi indipendenti di finestre (intercalati lungo il brano) e riportando quanto differiscono tra loro. Se le due metà coincidono, la misurazione è ripetibile anche se R è basso; se differiscono molto, l'app la dichiara non affidabile. Il pannello della <b>deriva</b> divide il brano in segmenti e stima il riferimento di ciascuno.",
   "howItMeasures.p4": "La correzione usa <b>Rubber Band</b> (modalità Finer, massima qualità) per cambiare l'intonazione senza toccare il tempo. Misurazione e correzione operano sempre sulla <b>stessa decodifica</b> del file — mai misurato in un modo e corretto in un altro.",
 
-  "footer.kofi": "Centrail è gratuito e lo sarà sempre. Se ti è stato utile, puoi offrirci un caffè ☕",
+  "footer.kofi": "Abbonati per più opzioni e più velocità. E se la versione gratuita ti basta già, puoi sempre offrirci un caffè ☕.",
 
   "error.unsupportedFormat": "Formato non supportato in questa versione ({format}). Formati disponibili: WAV, FLAC, MP3, OGG, M4A.",
   "error.loadFailed": "Impossibile caricare il file: {message}",

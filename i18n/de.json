@@ -98,7 +98,7 @@
   "howItMeasures.p3b": "Die <b>Unsicherheit (±)</b> ist ein ehrlicheres Vertrauensmaß: Sie wird berechnet, indem zwei unabhängige Teilmengen von Fenstern getrennt gemessen werden (über den Titel verschachtelt) und ihre Abweichung voneinander berichtet wird. Stimmen beide Hälften überein, ist die Messung reproduzierbar, selbst wenn R niedrig ist; weichen sie stark ab, erklärt die App sie für unzuverlässig. Das <b>Drift</b>-Panel teilt den Titel in Segmente und schätzt für jedes den Referenzton.",
   "howItMeasures.p4": "Die Korrektur nutzt <b>Rubber Band</b> (Finer-Modus, höchste Qualität), um die Tonhöhe zu ändern, ohne das Tempo zu berühren. Messung und Korrektur laufen immer über dieselbe <b>Dekodierung</b> der Datei — nie auf einem Weg gemessen und auf einem anderen korrigiert.",
 
-  "footer.kofi": "Centrail ist kostenlos und wird es immer bleiben. Wenn es dir geholfen hat, kannst du uns einen Kaffee spendieren ☕",
+  "footer.kofi": "Abonniere für mehr Optionen und mehr Geschwindigkeit. Und wenn dir die kostenlose Version schon reicht, kannst du uns jederzeit einen Kaffee spendieren ☕.",
 
   "error.unsupportedFormat": "Format in dieser Version nicht unterstützt ({format}). Verfügbare Formate: WAV, FLAC, MP3, OGG, M4A.",
   "error.loadFailed": "Datei konnte nicht geladen werden: {message}",
