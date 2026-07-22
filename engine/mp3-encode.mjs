@@ -1,7 +1,7 @@
 // Encoder MP3 (vendor/lamejs) — exportación §4.2: siempre con pérdida, 320 kbps
 // por defecto, ofrecido junto a WAV/FLAC (nunca en su reemplazo).
 
-import { Mp3Encoder } from "../vendor/lamejs/lamejs.js?v=1.2.0";
+import { Mp3Encoder } from "../vendor/lamejs/lamejs.js?v=1.3.0";
 
 const BLOCK_SIZE = 1152; // tamaño de bloque nativo de LAME
 

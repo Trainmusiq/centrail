@@ -249,7 +249,7 @@ export function initTunerMode(root, t) {
       if (audioCtx.state === "suspended") await audioCtx.resume();
 
       const [, ] = await Promise.all([
-        audioCtx.audioWorklet.addModule(new URL("../workers/tuner-processor.mjs?v=1.2.0", import.meta.url)),
+        audioCtx.audioWorklet.addModule(new URL("../workers/tuner-processor.mjs?v=1.3.0", import.meta.url)),
         (async () => {
           const constraints = { audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } };
           micStream = await navigator.mediaDevices.getUserMedia(constraints);

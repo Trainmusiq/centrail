@@ -5,8 +5,8 @@
 // se decodifican una sola vez vía decodeAudioData en el hilo principal y esa MISMA
 // decodificación se reusa para medir y corregir — nunca dos caminos distintos.
 
-import "../vendor/wasm-audio-decoders-flac/flac-decoder.min.js?v=1.2.0";
-import { decodeWav } from "./wav.mjs?v=1.2.0";
+import "../vendor/wasm-audio-decoders-flac/flac-decoder.min.js?v=1.3.0";
+import { decodeWav } from "./wav.mjs?v=1.3.0";
 
 /** @returns {'flac'|'wav'|'mp3'|'ogg'|'m4a'|'aiff'|'unknown'} */
 export function detectFormat(filename) {
