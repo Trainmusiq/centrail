@@ -105,5 +105,27 @@
   "error.processFailed": "无法处理文件：{message}",
   "error.workerError": "Worker 内部错误：{message}",
   "error.copyDiagnostic": "复制诊断信息",
-  "error.copied": "已复制 — 粘贴到 GitHub Issue 中即可"
+  "error.copied": "已复制 — 粘贴到 GitHub Issue 中即可",
+
+  "mode.recording": "录音",
+  "mode.live": "实时",
+  "tuner.refTitle": "参考频率",
+  "tuner.title": "调音器",
+  "mic.activate": "启用麦克风",
+  "mic.privacyNote": "麦克风音频在你的设备上处理：不会被录制，也不会发送到任何地方。",
+  "mic.requesting": "正在请求权限…",
+  "mic.denied": "无法启用麦克风：{message}",
+  "mic.deniedFallback": "录音模式和持续音仍然可以在没有麦克风的情况下使用。",
+  "mic.deactivate": "停止麦克风",
+  "mic.deviceLabel": "音频输入",
+  "tuner.listening": "正在聆听……演奏或唱一个持续的音。",
+  "tuner.noSignal": "没有清晰的信号。",
+  "tuner.temperamentNote": "参考：从{tonic}开始的{temperament}",
+  "drone.title": "持续音生成器",
+  "drone.play": "播放",
+  "drone.stop": "停止",
+  "drone.download": "下载 WAV",
+  "temperament.equal": "十二平均律",
+  "temperament.just": "纯律",
+  "temperament.meantone": "中庸律"
 }

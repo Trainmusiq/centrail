@@ -105,5 +105,27 @@
   "error.processFailed": "파일을 처리할 수 없습니다: {message}",
   "error.workerError": "내부 워커 오류: {message}",
   "error.copyDiagnostic": "진단 정보 복사",
-  "error.copied": "복사되었습니다 — GitHub Issue에 붙여넣으세요"
+  "error.copied": "복사되었습니다 — GitHub Issue에 붙여넣으세요",
+
+  "mode.recording": "녹음",
+  "mode.live": "라이브",
+  "tuner.refTitle": "기준",
+  "tuner.title": "튜너",
+  "mic.activate": "마이크 활성화",
+  "mic.privacyNote": "마이크 오디오는 사용자의 기기에서 처리됩니다. 녹음되거나 어디로도 전송되지 않습니다.",
+  "mic.requesting": "권한 요청 중…",
+  "mic.denied": "마이크를 활성화할 수 없습니다: {message}",
+  "mic.deniedFallback": "녹음 모드와 드론은 마이크 없이도 계속 사용할 수 있습니다.",
+  "mic.deactivate": "마이크 정지",
+  "mic.deviceLabel": "오디오 입력",
+  "tuner.listening": "듣는 중… 음을 길게 연주하거나 불러보세요.",
+  "tuner.noSignal": "명확한 신호가 없습니다.",
+  "tuner.temperamentNote": "기준: {tonic}에서 {temperament}",
+  "drone.title": "드론 생성기",
+  "drone.play": "재생",
+  "drone.stop": "정지",
+  "drone.download": "WAV 다운로드",
+  "temperament.equal": "평균율",
+  "temperament.just": "순정율",
+  "temperament.meantone": "중전율"
 }

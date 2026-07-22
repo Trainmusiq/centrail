@@ -105,5 +105,27 @@
   "error.processFailed": "Не удалось обработать файл: {message}",
   "error.workerError": "Внутренняя ошибка воркера: {message}",
   "error.copyDiagnostic": "Скопировать диагностическую информацию",
-  "error.copied": "Скопировано — вставьте в GitHub Issue"
+  "error.copied": "Скопировано — вставьте в GitHub Issue",
+
+  "mode.recording": "Запись",
+  "mode.live": "В реальном времени",
+  "tuner.refTitle": "Эталон",
+  "tuner.title": "Тюнер",
+  "mic.activate": "Включить микрофон",
+  "mic.privacyNote": "Аудио с микрофона обрабатывается на вашем устройстве: оно не записывается и никуда не отправляется.",
+  "mic.requesting": "Запрашивается разрешение…",
+  "mic.denied": "Не удалось включить микрофон: {message}",
+  "mic.deniedFallback": "Режим записи и дроны по-прежнему доступны без микрофона.",
+  "mic.deactivate": "Остановить микрофон",
+  "mic.deviceLabel": "Аудиовход",
+  "tuner.listening": "Слушаю… сыграйте или спойте протяжную ноту.",
+  "tuner.noSignal": "Нет чёткого сигнала.",
+  "tuner.temperamentNote": "Эталон: {temperament} от {tonic}",
+  "drone.title": "Генератор дронов",
+  "drone.play": "Воспроизвести",
+  "drone.stop": "Остановить",
+  "drone.download": "Скачать WAV",
+  "temperament.equal": "Равномерная (темперация)",
+  "temperament.just": "Чистая",
+  "temperament.meantone": "Среднетоновая"
 }

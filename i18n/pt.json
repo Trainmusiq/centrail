@@ -105,5 +105,27 @@
   "error.processFailed": "Não foi possível processar o arquivo: {message}",
   "error.workerError": "Erro interno do worker: {message}",
   "error.copyDiagnostic": "Copiar informações de diagnóstico",
-  "error.copied": "Copiado — cole em uma Issue do GitHub"
+  "error.copied": "Copiado — cole em uma Issue do GitHub",
+
+  "mode.recording": "Gravação",
+  "mode.live": "Ao vivo",
+  "tuner.refTitle": "Referência",
+  "tuner.title": "Afinador",
+  "mic.activate": "Ativar microfone",
+  "mic.privacyNote": "O áudio do microfone é processado no seu equipamento: não é gravado nem enviado para lugar nenhum.",
+  "mic.requesting": "Solicitando permissão…",
+  "mic.denied": "Não foi possível ativar o microfone: {message}",
+  "mic.deniedFallback": "O modo Gravação e os drones continuam disponíveis sem microfone.",
+  "mic.deactivate": "Parar microfone",
+  "mic.deviceLabel": "Entrada de áudio",
+  "tuner.listening": "Ouvindo… toque ou cante uma nota sustentada.",
+  "tuner.noSignal": "Sem sinal claro.",
+  "tuner.temperamentNote": "Referência: {temperament} a partir de {tonic}",
+  "drone.title": "Gerador de drones",
+  "drone.play": "Reproduzir",
+  "drone.stop": "Parar",
+  "drone.download": "Baixar WAV",
+  "temperament.equal": "Igual (temperado)",
+  "temperament.just": "Justa",
+  "temperament.meantone": "Mesotônica"
 }

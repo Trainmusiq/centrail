@@ -1,9 +1,9 @@
 # Centrail — Especificación del proyecto
 
 **Ecosistema:** trainmusiq (herramientas independientes para aprender/entrenar música, inspiración ferroviaria aplicada donde calza — ver §5) · **Producto (puerta de entrada):** Centrail — diagnóstico y corrección de afinación de referencia
-**Versión:** 1.10 · Julio 2026
+**Versión:** 1.13 · Julio 2026
 **Autor:** Juanma (Punta Arenas) con Claude
-**Estado:** v1.1 publicada y cerrada en GitHub Pages (https://trainmusiq.github.io/centrail/). Esta es ahora la especificación viva del repo — la mantiene quien ejecute cada sesión de Claude Code. Documento hermano: `roadmap.md` (el CUÁNDO/ORDEN/POR QUÉ comercial de todo el ecosistema; esta spec es el QUÉ técnico de Centrail) — vive en el repo privado `trainmusiq/trainmusiq`, junto con `manual-continuidad.md` (método) y `brief-diseno.md` (identidad); ya no se duplican en este repo.
+**Estado:** v1.3 publicada en GitHub Pages (https://trainmusiq.github.io/centrail/) — modo "En vivo" (afinador + drones) conviviendo con el modo "Grabación" (diagnóstico/corrección de archivos, v1.1-v1.2). Esta es ahora la especificación viva del repo — la mantiene quien ejecute cada sesión de Claude Code. Documento hermano: `roadmap.md` (el CUÁNDO/ORDEN/POR QUÉ comercial de todo el ecosistema; esta spec es el QUÉ técnico de Centrail) — vive en el repo privado `trainmusiq/trainmusiq`, junto con `manual-continuidad.md` (método) y `brief-diseno.md` (identidad); ya no se duplican en este repo.
 
 **Nombre:** "Centrail" une **cent** (la unidad de medida de la herramienta), **rail** (el universo ferroviario de TrainMusiq) y el eco de "central/centrar" (centrar la afinación: la aguja del dial queda centrada en el riel cuando el tema está afinado). El nombre de trabajo anterior era "Patrón 440"; el prototipo `patron440.html` lo conserva hasta que se porte.
 
@@ -179,3 +179,53 @@ El prototipo estableció una dirección: **instrumento de banco de pruebas** —
 - **Sin recursos externos en producción:** auto-hostear tipografías (no Google Fonts CDN) y todo asset — mejor privacidad, sin dependencia de terceros, GDPR-friendly para usuarios europeos.
 - **Cache-busting de módulos ES (hallazgo de sesión):** el navegador puede quedarse con una versión vieja de un `.mjs`/`.json` cacheada indefinidamente, incluso entre reloads — no solo un problema del dev server local, también relevante en producción para que un release nuevo llegue a usuarios con pestañas ya cacheadas. Sin build step (sitio estático puro), la mitigación es versionar a mano: todo import/fetch interno (`index.html`, `engine/*.mjs`, `workers/*.mjs`) lleva `?v=X.Y.Z` sincronizado con `package.json`. `scripts/bump-cache-version.sh <version>` actualiza todos los archivos a la vez — correrlo en cada release. Límite conocido: el `.wasm` binario de libflacjs se resuelve desde dentro del wrapper vendorizado (sin tocar el archivo de terceros) y no lleva query string; en la práctica no es un problema porque wrapper y binario se vendorizan juntos desde la misma versión upstream.
 - **Cuando llegue el servidor (etapa 2+, tier de pago):** ahí comienza la seguridad seria — autenticación, manejo de uploads, procesamiento de pagos, rate limiting. No subestimar; presupuestar tiempo específico al abrir esa etapa.
+
+## 12. v1.3 — Modo "En vivo": afinador + generador de drones (22 jul 2026)
+
+Adición de alcance a la etapa 1 (no contemplada en `roadmap.md` al momento de esta sesión — se sincroniza ahí también al cerrar). La app gana dos modos explícitos, con un tab visible y ruta de hash: **Grabación** (default, el flujo de diagnóstico/corrección de archivos ya descrito arriba, drop zone como héroe según brief de diseño §9) y **En vivo** (`#/tuner`, afinador en tiempo real + generador de drones).
+
+### 12.1 Arquitectura de modos
+
+`index.html` mantiene el flujo Grabación intacto en su lugar (código ya probado, cero riesgo de regresión); la lógica nueva vive en `engine/tuner-app.mjs`, cargado con **import dinámico** solo la primera vez que se entra a `#/tuner` — quien solo usa Grabación nunca descarga ni parsea código de mic/AudioWorklet/drones (mismo espíritu que "no sobrecargar la primera pantalla"). Ruteo por `location.hash`/`hashchange`, sin librería de routing.
+
+**Riel compartido** (`engine/reference-store.mjs`): un único estado `{hz, temperament, tonic}` persistido en `localStorage` (`centrail-reference`, mismo patrón que `centrail-lang`), con notificación vía `EventTarget` y sincronización entre pestañas del navegador (evento `storage`). Elegir 442 Hz en el afinador preselecciona 442 Hz como destino de corrección en Grabación, y viceversa — un solo concepto de "riel" en toda la app. `temperament`/`tonic` solo los consume el modo En vivo; el pipeline offline (`detect.mjs`/`correct.mjs`, algoritmo congelado) nunca los lee.
+
+### 12.2 Motor de detección en tiempo real: MPM, elegido por benchmark propio
+
+Regla del proyecto (evidencia propia, no reputación): `test/bench-pitch.mjs` implementa YIN y MPM (McLeod Pitch Method) en JS puro y los compara sobre tonos sintéticos limpios y con ruido (simulando micrófono real), con los casos ruidosos promediados sobre 25 sorteos independientes (un solo sorteo de `Math.random()` resultó ser una muestra ruidosa en sí misma — mismo hallazgo que en la sesión de persistencia de picos de v1.2). Resultado estable en 3 corridas repetidas: **MPM gana** — menor error medio (0.25-0.36¢ vs. 0.43-0.49¢ de YIN) y sobre todo menor error máximo bajo ruido (3.0-3.5¢ vs. hasta 9.2¢ de YIN) — más robusto ante ruido real, que es lo que importa para un micrófono. Ambos algoritmos usan una fracción pequeña del presupuesto de tiempo real disponible (YIN ~8%, MPM ~16% de los 11.6ms de hop a 44.1kHz) — la velocidad no fue el criterio decisivo.
+
+Implementación canónica y testeable en Node: `engine/pitch-detect.mjs`. El `AudioWorkletProcessor` (`workers/tuner-processor.mjs`) usa una **copia inline sin imports** del mismo algoritmo — los AudioWorkletProcessor no soportan imports de módulos ES de forma confiable en todos los navegadores (riesgo documentado en Safari), así que se duplica deliberadamente en vez de importar; cualquier ajuste al algoritmo debe replicarse a mano en ambos archivos.
+
+**Presupuesto de latencia:** ventana de análisis 2048 muestras (~46ms), hop 512 muestras (~11.6ms, 75% overlap), mediana móvil de 3 lecturas crudas para estabilidad, reporte por `postMessage` cada ~50ms (no en cada quantum de 128 muestras — sería ~344 msj/s, insostenible). Latencia percibida estimada ≈65-100ms. Puerta de confianza: exige `confidence ≥ 0.5` (métrica NSDF de MPM) y RMS de la ventana sobre un piso mínimo antes de aceptar una lectura; "sin señal clara" requiere 3 reportes consecutivos antes de mostrarse (evita parpadeo en silencios cortos entre notas).
+
+**Permiso de micrófono:** gesto explícito ("Activar micrófono"), nunca automático. `AudioContext` creado/resumido **síncronamente** dentro del handler de click (requisito de iOS Safari: `resume()` debe colgar directamente del gesto). `getUserMedia` con `echoCancellation/noiseSuppression/autoGainControl: false` (los procesamientos de voz-chat distorsionan el contenido armónico que necesita el detector). `enumerateDevices()` se llama **solo después** de obtener permiso — los labels de dispositivo no existen sin permiso previo (comportamiento estándar del navegador) — y solo se muestra el selector si hay más de una entrada de audio. Copy exacto: *"El audio del micrófono se procesa en tu equipo: no se graba ni se envía a ningún lado."* Denegado/error → mensaje honesto en dos líneas separadas (el mensaje del navegador + la aclaración de que Grabación y Drones siguen disponibles), nunca una sola oración concatenada sin puntuación.
+
+### 12.3 Generador de drones
+
+`OscillatorNode` (seno) para preview en vivo y el mismo grafo renderizado en `OfflineAudioContext` para el export — garantiza que lo exportado sea exactamente lo que se escuchó, sin duplicar el camino de síntesis. 8 segundos, 44.1kHz/16-bit, fade in/out de 15ms (evita clicks), reusa `encodeWav` de `engine/wav.mjs` sin modificarlo (ya soportaba cualquier `Float32Array[]` sintetizado en memoria, no solo audio decodificado de archivo).
+
+### 12.4 Temperamentos
+
+`engine/temperament.mjs`: offsets en cents por grado calculados **por fórmula** desde ratios/generador de quinta (nunca decimales de memoria), verificados en `test/temperament-tables.mjs` contra valores canónicos publicados:
+- **Justa (5-limit):** quinta ≈+1.96¢, tercera mayor ≈−13.69¢, tritono (45/32) ≈−9.78¢, con simetría offset(k) = −offset(12−k) como propiedad de consistencia interna.
+- **Mesotónica (1/4 de coma sintónica):** quinta generadora ≈696.58¢ (700 − 21.51/4 ¢), construida apilando la cadena estándar de 12 quintas Mib–Sol♯ (evita la quinta de lobo en el rango usado); rasgo definitorio verificado: la tercera mayor coincide exactamente con la de justa (ambas dan 5/4 puro).
+
+Aplicable tanto al drone (desplaza la frecuencia generada) como al afinador (recalcula contra qué "cero" se mide la desviación: `deviationCents = rawCentsVsEqual12TET − temperamentOffsetCents(grado respecto a la tónica elegida)`, mismo dial, solo cambia el término restado). Si en el futuro comprometen la estabilidad de alguna otra parte del MVP, quedan documentados como diferibles a v1.3.1 sin bloquear release — no fue necesario en esta sesión, los tres temperamentos entraron completos.
+
+### 12.5 i18n y nombres de nota
+
+~21 claves nuevas × 10 idiomas (116 claves totales, validado en `test/i18n-coverage.mjs`, ahora committeado — antes vivía como script ad hoc). Nombres de nota en módulo aparte (`engine/note-names.mjs`, NO en los JSON de copy): son datos posicionales de tamaño fijo (12), consumidos por matemática musical, no por interpolación `t()`. Convención por idioma: solfeo (Do-Si) para español/francés/italiano/portugués; letras para inglés/japonés/coreano/chino/ruso; letras con **H** para el Si natural en alemán (evita la ambigüedad del "B" alemán, que es Si♭) — decisión de diseño, no verificada por hablante nativo de cada idioma (mismo riesgo honesto ya declarado para el resto de las traducciones desde v1.1).
+
+### 12.6 Verificación móvil — honesta
+
+Verificado con Browser preview (viewport 375×812, Chrome desktop): layout responsive de tabs/riel/afinador/drones, deep link `#/tuner`, toggle entre modos sin regresión del flujo Grabación, generación y descarga de drone funcionando, degradación honesta del permiso de micrófono (entorno de prueba sandboxed lo bloquea deliberadamente — la app respondió con el mensaje de error correcto y Grabación/Drones siguieron disponibles, exactamente como se diseñó). **No verificado con hardware físico en esta sesión** (iOS Safari real, Android físico) — el fundador se comprometió a un spot-check propio tras el deploy; mitigaciones preventivas ya aplicadas en código (lectura dinámica de `sampleRate`, nunca asumido; flags de audio desactivados; `AudioContext` resumido síncrono en el gesto; `tuner-processor.mjs` sin imports).
+
+### 12.7 Definición de "terminado" para v1.3
+
+- ✓ Dos modos conviviendo, tab + `#/tuner`, riel compartido y persistente.
+- ✓ Benchmark propio decidiendo el algoritmo (MPM), documentado arriba.
+- ✓ Afinador en vivo con dial reusado, nota+cents con décima, referencia libre.
+- ✓ Generador de drones con temperamentos y export WAV.
+- ✓ Permiso de micrófono gesture-gated, copy honesto, degradación honesta.
+- ✓ i18n completo en 10 idiomas.
+- ⚠ Verificación móvil: Chrome desktop con viewport emulado sí; iOS Safari/Android físico pendiente de spot-check del fundador — no se declara un ✓ de cortesía.

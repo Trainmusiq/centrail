@@ -11,7 +11,10 @@
     "test:wav": "node test/wav-roundtrip.mjs",
     "test:flac": "node test/flac-roundtrip.mjs",
     "test:duration": "node test/duration-exact.mjs",
-    "test": "npm run test:roundtrip && npm run test:stereo && npm run test:wav && npm run test:flac && npm run test:duration"
+    "test:temperament": "node test/temperament-tables.mjs",
+    "test:i18n": "node test/i18n-coverage.mjs",
+    "test": "npm run test:roundtrip && npm run test:stereo && npm run test:wav && npm run test:flac && npm run test:duration && npm run test:temperament && npm run test:i18n",
+    "bench:pitch": "node test/bench-pitch.mjs"
   },
   "dependencies": {
     "@wasm-audio-decoders/flac": "^0.2.10"

@@ -105,5 +105,27 @@
   "error.processFailed": "Datei konnte nicht verarbeitet werden: {message}",
   "error.workerError": "Interner Worker-Fehler: {message}",
   "error.copyDiagnostic": "Diagnoseinfo kopieren",
-  "error.copied": "Kopiert — in ein GitHub Issue einfügen"
+  "error.copied": "Kopiert — in ein GitHub Issue einfügen",
+
+  "mode.recording": "Aufnahme",
+  "mode.live": "Live",
+  "tuner.refTitle": "Referenz",
+  "tuner.title": "Stimmgerät",
+  "mic.activate": "Mikrofon aktivieren",
+  "mic.privacyNote": "Das Mikrofon-Audio wird auf deinem Gerät verarbeitet: es wird nicht aufgezeichnet oder irgendwohin gesendet.",
+  "mic.requesting": "Berechtigung wird angefragt…",
+  "mic.denied": "Mikrofon konnte nicht aktiviert werden: {message}",
+  "mic.deniedFallback": "Der Aufnahme-Modus und die Drones sind auch ohne Mikrofon verfügbar.",
+  "mic.deactivate": "Mikrofon stoppen",
+  "mic.deviceLabel": "Audioeingang",
+  "tuner.listening": "Hört zu… spiele oder singe einen gehaltenen Ton.",
+  "tuner.noSignal": "Kein klares Signal.",
+  "tuner.temperamentNote": "Referenz: {temperament} ab {tonic}",
+  "drone.title": "Drone-Generator",
+  "drone.play": "Abspielen",
+  "drone.stop": "Stoppen",
+  "drone.download": "WAV herunterladen",
+  "temperament.equal": "Gleichstufig (temperiert)",
+  "temperament.just": "Rein",
+  "temperament.meantone": "Mitteltönig"
 }

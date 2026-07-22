@@ -105,5 +105,27 @@
   "error.processFailed": "ファイルを処理できませんでした：{message}",
   "error.workerError": "ワーカー内部エラー：{message}",
   "error.copyDiagnostic": "診断情報をコピー",
-  "error.copied": "コピーしました — GitHub Issueに貼り付けてください"
+  "error.copied": "コピーしました — GitHub Issueに貼り付けてください",
+
+  "mode.recording": "録音",
+  "mode.live": "ライブ",
+  "tuner.refTitle": "基準",
+  "tuner.title": "チューナー",
+  "mic.activate": "マイクを有効にする",
+  "mic.privacyNote": "マイクの音声はお使いの機器内で処理されます。録音されず、どこにも送信されません。",
+  "mic.requesting": "許可をリクエスト中…",
+  "mic.denied": "マイクを有効にできませんでした：{message}",
+  "mic.deniedFallback": "録音モードとドローンはマイクなしでも引き続き利用できます。",
+  "mic.deactivate": "マイクを停止",
+  "mic.deviceLabel": "音声入力",
+  "tuner.listening": "聴いています…音を伸ばして演奏するか歌ってください。",
+  "tuner.noSignal": "明確な信号がありません。",
+  "tuner.temperamentNote": "基準：{tonic}から{temperament}",
+  "drone.title": "ドローン生成",
+  "drone.play": "再生",
+  "drone.stop": "停止",
+  "drone.download": "WAVをダウンロード",
+  "temperament.equal": "平均律",
+  "temperament.just": "純正律",
+  "temperament.meantone": "中全律"
 }
