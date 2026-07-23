@@ -4,3 +4,8 @@ node_modules/
 
 # audio con copyright — nunca commitear
 test/private/
+
+# artefactos de audio sueltos (drones exportados, pruebas manuales) — el
+# proyecto genera audio de prueba en memoria por script, nunca lo commitea
+*.wav
+*.flac
