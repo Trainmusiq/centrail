@@ -118,6 +118,7 @@
   "mic.deniedFallback": "녹음 모드와 드론은 마이크 없이도 계속 사용할 수 있습니다.",
   "mic.deactivate": "마이크 정지",
   "mic.deviceLabel": "오디오 입력",
+  "tuner.idle": "마이크를 활성화해 악기 소리를 들어보세요.",
   "tuner.listening": "듣는 중… 음을 길게 연주하거나 불러보세요.",
   "tuner.noSignal": "명확한 신호가 없습니다.",
   "tuner.temperamentNote": "기준: {tonic}에서 {temperament}",

@@ -118,6 +118,7 @@
   "mic.deniedFallback": "Recording mode and the drones are still available without a microphone.",
   "mic.deactivate": "Stop microphone",
   "mic.deviceLabel": "Audio input",
+  "tuner.idle": "Activate the microphone to listen to your instrument.",
   "tuner.listening": "Listening… play or sing a sustained note.",
   "tuner.noSignal": "No clear signal.",
   "tuner.temperamentNote": "Reference: {temperament} from {tonic}",

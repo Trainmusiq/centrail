@@ -118,6 +118,7 @@
   "mic.deniedFallback": "录音模式和持续音仍然可以在没有麦克风的情况下使用。",
   "mic.deactivate": "停止麦克风",
   "mic.deviceLabel": "音频输入",
+  "tuner.idle": "启用麦克风来聆听你的乐器。",
   "tuner.listening": "正在聆听……演奏或唱一个持续的音。",
   "tuner.noSignal": "没有清晰的信号。",
   "tuner.temperamentNote": "参考：从{tonic}开始的{temperament}",

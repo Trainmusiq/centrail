@@ -118,6 +118,7 @@
   "mic.deniedFallback": "Режим записи и дроны по-прежнему доступны без микрофона.",
   "mic.deactivate": "Остановить микрофон",
   "mic.deviceLabel": "Аудиовход",
+  "tuner.idle": "Включите микрофон, чтобы услышать свой инструмент.",
   "tuner.listening": "Слушаю… сыграйте или спойте протяжную ноту.",
   "tuner.noSignal": "Нет чёткого сигнала.",
   "tuner.temperamentNote": "Эталон: {temperament} от {tonic}",

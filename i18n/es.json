@@ -118,6 +118,7 @@
   "mic.deniedFallback": "El modo Grabación y los drones siguen disponibles sin micrófono.",
   "mic.deactivate": "Detener micrófono",
   "mic.deviceLabel": "Entrada de audio",
+  "tuner.idle": "Activa el micrófono para escuchar tu instrumento.",
   "tuner.listening": "Escuchando… toca o canta una nota sostenida.",
   "tuner.noSignal": "Sin señal clara.",
   "tuner.temperamentNote": "Referencia: {temperament} desde {tonic}",

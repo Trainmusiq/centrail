@@ -23,6 +23,29 @@ function noteToHz(semitoneIndex, octave, referenceHz, temperamentName, tonicInde
 }
 
 const TEMPLATE = `
+  <div class="card full" id="tunerCard">
+    <h2 data-k="tuner.title"></h2>
+    <div id="micGate">
+      <button class="preset active" id="micActivateBtn" type="button" style="padding:11px 22px"></button>
+      <button class="preset" id="micDeactivateBtn" type="button" style="padding:11px 22px;display:none"></button>
+      <p class="drift-note" id="micPrivacyNote" style="margin-top:10px"></p>
+      <select id="micDeviceSelect" aria-label="Dispositivo de entrada" style="display:none;margin-top:10px"></select>
+    </div>
+    <div class="err" id="micErrBox" style="margin-top:14px">
+      <div class="err-msg" id="micErrMsg"></div>
+    </div>
+    <div id="liveDialWrap" style="text-align:center;margin-top:18px">
+      <div class="dial-wrap">
+        <svg id="dialLive" viewBox="0 0 340 120"></svg>
+        <div class="dial-cap"><span>−50 ¢</span><span>0 ¢</span><span>+50 ¢</span></div>
+      </div>
+      <div class="hz"><span id="liveNoteName">—</span></div>
+      <div class="verdict" id="liveCents">—</div>
+      <div class="drift-note" id="liveStatus"></div>
+      <div class="drift-note" id="liveTemperamentNote"></div>
+    </div>
+  </div>
+
   <div class="card full">
     <h2 data-k="tuner.refTitle"></h2>
     <div class="presets" id="liveRefPresets"></div>
@@ -34,31 +57,6 @@ const TEMPLATE = `
     <div class="transpose-row" style="margin-top:12px">
       <select id="temperamentSelect" aria-label="Temperamento"></select>
       <select id="tonicSelect" aria-label="Tónica" style="display:none"></select>
-    </div>
-  </div>
-
-  <div class="card full" id="tunerCard">
-    <h2 data-k="tuner.title"></h2>
-    <div id="micGate">
-      <button class="preset active" id="micActivateBtn" type="button" style="padding:11px 22px"></button>
-      <p class="drift-note" id="micPrivacyNote" style="margin-top:10px"></p>
-      <select id="micDeviceSelect" aria-label="Dispositivo de entrada" style="display:none;margin-top:10px"></select>
-    </div>
-    <div class="err" id="micErrBox" style="margin-top:14px">
-      <div class="err-msg" id="micErrMsg"></div>
-    </div>
-    <div id="liveDialWrap" style="display:none;text-align:center">
-      <div class="dial-wrap">
-        <svg id="dialLive" viewBox="0 0 340 120"></svg>
-        <div class="dial-cap"><span>−50 ¢</span><span>0 ¢</span><span>+50 ¢</span></div>
-      </div>
-      <div class="hz"><span id="liveNoteName">—</span></div>
-      <div class="verdict" id="liveCents">—</div>
-      <div class="drift-note" id="liveStatus"></div>
-      <div class="drift-note" id="liveTemperamentNote"></div>
-      <div class="again" style="margin-top:14px">
-        <button id="micDeactivateBtn"></button>
-      </div>
     </div>
   </div>
 
@@ -83,9 +81,9 @@ export function initTunerMode(root, t) {
   const els = {
     refPresets: $("liveRefPresets"), freeHz: $("liveFreeHz"),
     temperamentSelect: $("temperamentSelect"), tonicSelect: $("tonicSelect"),
-    micGate: $("micGate"), micActivateBtn: $("micActivateBtn"), micPrivacyNote: $("micPrivacyNote"),
+    micActivateBtn: $("micActivateBtn"), micPrivacyNote: $("micPrivacyNote"),
     micDeviceSelect: $("micDeviceSelect"), micErrBox: $("micErrBox"), micErrMsg: $("micErrMsg"),
-    liveDialWrap: $("liveDialWrap"), dialLive: $("dialLive"), liveNoteName: $("liveNoteName"),
+    dialLive: $("dialLive"), liveNoteName: $("liveNoteName"),
     liveCents: $("liveCents"), liveStatus: $("liveStatus"), liveTemperamentNote: $("liveTemperamentNote"),
     micDeactivateBtn: $("micDeactivateBtn"),
     droneNote: $("droneNote"), droneOctave: $("droneOctave"),
@@ -122,8 +120,8 @@ export function initTunerMode(root, t) {
       el.textContent = tr(el.dataset.k);
     });
     els.micActivateBtn.textContent = tr("mic.activate");
-    els.micPrivacyNote.textContent = tr("mic.privacyNote");
     els.micDeactivateBtn.textContent = tr("mic.deactivate");
+    els.micPrivacyNote.textContent = tr("mic.privacyNote");
     els.dronePlayBtn.textContent = tr("drone.play");
     els.droneStopBtn.textContent = tr("drone.stop");
     els.droneDownloadBtn.textContent = tr("drone.download");
@@ -140,6 +138,7 @@ export function initTunerMode(root, t) {
     renderRefPresets();
     updateTemperamentUiVisibility();
     if (liveNoteState) renderLiveReading(liveNoteState);
+    else renderIdleOrListening();
   }
 
   // ── riel compartido ──
@@ -178,6 +177,18 @@ export function initTunerMode(root, t) {
 
   // ── afinador en vivo ──
   let liveNoteState = null; // último {hz, confidence} recibido
+  let micActive = false;
+  let hasEverDetectedNote = false; // distingue "recién activado" de "hubo nota y ahora hay silencio"
+
+  // Estado en reposo: visible desde el inicio, antes incluso de activar el
+  // micrófono — el dial y la lectura nunca están "ausentes", solo inactivos.
+  function renderIdleOrListening() {
+    els.liveNoteName.textContent = "—";
+    els.liveCents.textContent = "—";
+    els.liveTemperamentNote.textContent = "";
+    els.liveStatus.textContent = tr(!micActive ? "tuner.idle" : hasEverDetectedNote ? "tuner.noSignal" : "tuner.listening");
+    drawDial(els.dialLive, 0);
+  }
 
   function renderLiveReading(raw) {
     const ref = getReference();
@@ -188,7 +199,7 @@ export function initTunerMode(root, t) {
     const names = currentLocaleNoteNames();
     els.liveNoteName.textContent = `${names[semitoneIndex]}${octave}`;
     els.liveCents.textContent = (deviationCents >= 0 ? "+" : "") + deviationCents.toFixed(1) + " ¢";
-    els.liveStatus.textContent = tr("tuner.listening");
+    els.liveStatus.textContent = "";
     els.liveTemperamentNote.textContent = ref.temperament === "equal" ? "" : tr("tuner.temperamentNote", { temperament: tr(`temperament.${ref.temperament}`), tonic: names[ref.tonic] });
     drawDial(els.dialLive, deviationCents);
   }
@@ -196,17 +207,14 @@ export function initTunerMode(root, t) {
   function handleWorkletMessage(msg) {
     if (msg.type === "pitch") {
       noSignalStreak = 0;
+      hasEverDetectedNote = true;
       liveNoteState = msg;
       renderLiveReading(msg);
     } else if (msg.type === "no-signal") {
       noSignalStreak++;
       if (noSignalStreak >= NO_SIGNAL_STREAK_REQUIRED) {
         liveNoteState = null;
-        els.liveNoteName.textContent = "—";
-        els.liveCents.textContent = "—";
-        els.liveStatus.textContent = tr("tuner.noSignal");
-        els.liveTemperamentNote.textContent = "";
-        drawDial(els.dialLive, 0);
+        renderIdleOrListening();
       }
     }
   }
@@ -268,8 +276,11 @@ export function initTunerMode(root, t) {
       await populateDeviceList();
       els.micDeviceSelect.onchange = () => connectMic(els.micDeviceSelect.value).catch((err) => showMicError(err));
 
-      els.micGate.style.display = "none";
-      els.liveDialWrap.style.display = "";
+      micActive = true;
+      hasEverDetectedNote = false;
+      els.micActivateBtn.style.display = "none";
+      els.micDeactivateBtn.style.display = "";
+      renderIdleOrListening();
     } catch (err) {
       showMicError(err);
     } finally {
@@ -298,9 +309,12 @@ export function initTunerMode(root, t) {
     if (audioCtx) audioCtx.suspend();
     micStream = null; micSource = null; workletNode = null;
     noSignalStreak = 0; liveNoteState = null;
-    els.micGate.style.display = "";
-    els.liveDialWrap.style.display = "none";
+    micActive = false;
+    hasEverDetectedNote = false;
+    els.micActivateBtn.style.display = "";
+    els.micDeactivateBtn.style.display = "none";
     els.micDeviceSelect.style.display = "none";
+    renderIdleOrListening();
   }
 
   els.micActivateBtn.addEventListener("click", activateMic);

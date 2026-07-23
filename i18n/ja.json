@@ -118,6 +118,7 @@
   "mic.deniedFallback": "録音モードとドローンはマイクなしでも引き続き利用できます。",
   "mic.deactivate": "マイクを停止",
   "mic.deviceLabel": "音声入力",
+  "tuner.idle": "マイクを有効にして楽器の音を聴きましょう。",
   "tuner.listening": "聴いています…音を伸ばして演奏するか歌ってください。",
   "tuner.noSignal": "明確な信号がありません。",
   "tuner.temperamentNote": "基準：{tonic}から{temperament}",
