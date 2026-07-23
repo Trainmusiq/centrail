@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Centrail — Diagnóstico y corrección de afinación de referencia</title>
-<link rel="stylesheet" href="fonts/fonts.css?v=1.3.0">
+<link rel="stylesheet" href="fonts/fonts.css?v=1.3.1">
 <style>
   /* ── Tokens: estética de instrumento de banco de pruebas ──
      fondo grafito, tinta cálida serigrafiada, ámbar de aguja VU,
@@ -446,12 +446,12 @@
 
 <script type="module">
 "use strict";
-import { detectFormat } from "./engine/decode.mjs?v=1.3.0";
-import { AVAILABLE_LOCALES, loadLocale, detectDefaultLocale, saveLocale, makeTranslator } from "./engine/i18n.mjs?v=1.3.0";
-import { drawDial } from "./engine/dial.mjs?v=1.3.0";
-import { getReference, setReference, onReferenceChange } from "./engine/reference-store.mjs?v=1.3.0";
+import { detectFormat } from "./engine/decode.mjs?v=1.3.1";
+import { AVAILABLE_LOCALES, loadLocale, detectDefaultLocale, saveLocale, makeTranslator } from "./engine/i18n.mjs?v=1.3.1";
+import { drawDial } from "./engine/dial.mjs?v=1.3.1";
+import { getReference, setReference, onReferenceChange } from "./engine/reference-store.mjs?v=1.3.1";
 
-const APP_VERSION = "1.3.0"; // sincronizado con package.json — scripts/bump-cache-version.sh lo actualiza
+const APP_VERSION = "1.3.1"; // sincronizado con package.json — scripts/bump-cache-version.sh lo actualiza
 
 const $ = id => document.getElementById(id);
 const drop = $("drop"), fileIn = $("file"), dragVeil = $("dragVeil"), prog = $("prog"), pbar = $("pbar"), pfill = $("pfill"),
@@ -558,7 +558,7 @@ await applyModeFromHash(); // aplica el estado inicial (deep link #/tuner o defa
 
 function newWorker() {
   if (worker) worker.terminate();
-  worker = new Worker(new URL("./workers/engine.worker.mjs?v=1.3.0", import.meta.url), { type: "module" });
+  worker = new Worker(new URL("./workers/engine.worker.mjs?v=1.3.1", import.meta.url), { type: "module" });
   worker.onmessage = onWorkerMessage;
   worker.onerror = (e) => showError(t("error.workerError", { message: e.message }));
   return worker;

@@ -1,7 +1,7 @@
 // Corrección de pitch sin alterar tempo — envoltorio sobre Rubber Band (vendor/rubberband-wasm).
 // Modo de máxima calidad (motor "Finer"/R3), tal como pide docs/especificacion.md §4.1.
 
-import { RubberBandInterface, RubberBandOption } from "../vendor/rubberband-wasm/index.esm.js?v=1.3.0";
+import { RubberBandInterface, RubberBandOption } from "../vendor/rubberband-wasm/index.esm.js?v=1.3.1";
 
 export { RubberBandOption };
 

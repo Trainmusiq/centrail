@@ -8,7 +8,7 @@ function loadFlac() {
     // FLAC_SCRIPT_LOCATION debe fijarse ANTES del import dinámico para que el
     // wrapper resuelva el .wasm relativo a esta carpeta (no a la URL del worker).
     self.FLAC_SCRIPT_LOCATION = new URL("../vendor/libflacjs/", import.meta.url).href;
-    flacPromise = import("../vendor/libflacjs/libflac.min.wasm.js?v=1.3.0").then(() => new Promise((resolve) => {
+    flacPromise = import("../vendor/libflacjs/libflac.min.wasm.js?v=1.3.1").then(() => new Promise((resolve) => {
       const Flac = self.Flac;
       if (Flac.isReady && Flac.isReady()) resolve(Flac);
       else Flac.onready = () => resolve(Flac);
