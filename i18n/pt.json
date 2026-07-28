@@ -1,8 +1,7 @@
 {
   "meta.title": "Centrail — Diagnóstico e correção de afinação de referência",
-  "header.subtitle": "Diagnóstico e correção<br>de afinação de referência",
   "drop.title": "Solte um arquivo de áudio aqui, ou clique para escolher",
-  "drop.formats": "WAV · FLAC · MP3 · OGG · M4A — o arquivo não sai do seu computador",
+  "drop.formats": "WAV · FLAC · AIFF · MP3 · OGG · M4A — o arquivo não sai do seu computador",
   "drop.aria": "Carregar arquivo de áudio",
   "dragVeil.label": "Solte para analisar",
 
@@ -98,17 +97,17 @@
   "howItMeasures.p3b": "A <b>incerteza (±)</b> é uma medida mais honesta de confiança: é calculada medindo dois subconjuntos independentes de janelas separadamente (intercalados ao longo da faixa) e reportando o quanto diferem entre si. Se as duas metades concordam, a medição é repetível mesmo com R baixo; se diferem muito, o app declara que não é confiável. O painel de <b>deriva</b> divide a faixa em segmentos e estima o padrão de cada um.",
   "howItMeasures.p4": "A correção usa <b>Rubber Band</b> (modo Finer, máxima qualidade) para mudar o pitch sem alterar o andamento. Medição e correção sempre operam sobre a <b>mesma decodificação</b> do arquivo — nunca se mede de um jeito e corrige de outro.",
 
-  "footer.kofi": "Assine para mais opções e mais velocidade. E se a versão gratuita já te basta, você sempre pode nos pagar um café ☕.",
+  "footer.kofi": "Se a ferramenta te ajudou, nos pague um café ☕.",
 
-  "error.unsupportedFormat": "Formato não suportado nesta versão ({format}). Formatos disponíveis: WAV, FLAC, MP3, OGG, M4A.",
+  "error.unsupportedFormat": "Formato não suportado nesta versão ({format}). Formatos disponíveis: WAV, FLAC, AIFF, MP3, OGG, M4A.",
   "error.loadFailed": "Não foi possível carregar o arquivo: {message}",
   "error.processFailed": "Não foi possível processar o arquivo: {message}",
   "error.workerError": "Erro interno do worker: {message}",
   "error.copyDiagnostic": "Copiar informações de diagnóstico",
   "error.copied": "Copiado — cole em uma Issue do GitHub",
 
-  "mode.recording": "Gravação",
-  "mode.live": "Ao vivo",
+  "mode.recording": "Corretor de pitch",
+  "mode.live": "Afinador",
   "tuner.refTitle": "Referência",
   "tuner.title": "Afinador",
   "mic.activate": "Ativar microfone",

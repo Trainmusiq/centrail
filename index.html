@@ -35,16 +35,12 @@
   .rig { max-width: 720px; margin: 0 auto; }
 
   header {
-    display: flex; align-items: baseline; justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between;
     border-bottom: 1px solid var(--line);
     padding-bottom: 14px; margin-bottom: 22px;
   }
   h1 { font-size: 20px; font-weight: 600; letter-spacing: 0.04em; }
   h1 .num { color: var(--amber); font-family: var(--mono); font-weight: 500; }
-  .plate {
-    font-family: var(--mono); font-size: 10.5px; color: var(--ink-dim);
-    letter-spacing: 0.12em; text-transform: uppercase; text-align: right;
-  }
 
   /* ── Modos (v1.3): Grabación (default, drop zone héroe) / En vivo ── */
   .tabs { display: flex; gap: 6px; margin-bottom: 18px; }
@@ -270,7 +266,7 @@
   .err-copy.copied { border-color: var(--cyan); color: var(--cyan); }
 
   .lang-select {
-    margin-top: 8px; font-family: var(--mono); font-size: 11px; background: var(--panel-2);
+    font-family: var(--mono); font-size: 11px; background: var(--panel-2);
     border: 1px solid var(--line); color: var(--ink-dim); padding: 4px 8px;
     border-radius: 5px; cursor: pointer;
   }
@@ -288,10 +284,7 @@
 <div class="rig">
   <header>
     <h1>Cent<span class="num">rail</span></h1>
-    <div>
-      <div class="plate" id="plate" data-i18n-html="header.subtitle"></div>
-      <select class="lang-select" id="langSelect" aria-label="Idioma / Language"></select>
-    </div>
+    <select class="lang-select" id="langSelect" aria-label="Idioma / Language"></select>
   </header>
 
   <nav class="tabs" id="modeTabs" role="tablist">
@@ -303,7 +296,7 @@
   <div class="drop" id="drop" tabindex="0" role="button" data-i18n-aria-label="drop.aria">
     <div class="big" data-i18n="drop.title"></div>
     <div class="fmt" data-i18n="drop.formats"></div>
-    <input type="file" id="file" accept="audio/*,.flac,.wav,.mp3,.ogg,.m4a">
+    <input type="file" id="file" accept="audio/*,.flac,.wav,.mp3,.ogg,.m4a,.aiff,.aif">
   </div>
   <div class="err" id="err">
     <div class="err-msg" id="errMsg"></div>
@@ -813,7 +806,7 @@ async function run(file) {
 
   const format = detectFormat(file.name);
   currentFileInfo = { format, sizeBytes: file.size };
-  if (format === "aiff" || format === "unknown") {
+  if (format === "unknown") {
     showError(t("error.unsupportedFormat", { format }));
     return;
   }
@@ -821,7 +814,7 @@ async function run(file) {
   const w = newWorker();
 
   try {
-    if (format === "flac" || format === "wav") {
+    if (format === "flac" || format === "wav" || format === "aiff") {
       const bytes = await file.arrayBuffer();
       w.postMessage({ cmd: "diagnose", fileName: file.name, format, bytes }, [bytes]);
     } else {

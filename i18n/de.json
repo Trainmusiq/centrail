@@ -1,8 +1,7 @@
 {
   "meta.title": "Centrail — Diagnose und Korrektur der Referenzstimmung",
-  "header.subtitle": "Diagnose und Korrektur<br>der Referenzstimmung",
   "drop.title": "Audiodatei hier ablegen oder klicken, um sie auszuwählen",
-  "drop.formats": "WAV · FLAC · MP3 · OGG · M4A — die Datei verlässt nie deinen Computer",
+  "drop.formats": "WAV · FLAC · AIFF · MP3 · OGG · M4A — die Datei verlässt nie deinen Computer",
   "drop.aria": "Audiodatei laden",
   "dragVeil.label": "Zum Analysieren ablegen",
 
@@ -98,17 +97,17 @@
   "howItMeasures.p3b": "Die <b>Unsicherheit (±)</b> ist ein ehrlicheres Vertrauensmaß: Sie wird berechnet, indem zwei unabhängige Teilmengen von Fenstern getrennt gemessen werden (über den Titel verschachtelt) und ihre Abweichung voneinander berichtet wird. Stimmen beide Hälften überein, ist die Messung reproduzierbar, selbst wenn R niedrig ist; weichen sie stark ab, erklärt die App sie für unzuverlässig. Das <b>Drift</b>-Panel teilt den Titel in Segmente und schätzt für jedes den Referenzton.",
   "howItMeasures.p4": "Die Korrektur nutzt <b>Rubber Band</b> (Finer-Modus, höchste Qualität), um die Tonhöhe zu ändern, ohne das Tempo zu berühren. Messung und Korrektur laufen immer über dieselbe <b>Dekodierung</b> der Datei — nie auf einem Weg gemessen und auf einem anderen korrigiert.",
 
-  "footer.kofi": "Abonniere für mehr Optionen und mehr Geschwindigkeit. Und wenn dir die kostenlose Version schon reicht, kannst du uns jederzeit einen Kaffee spendieren ☕.",
+  "footer.kofi": "Wenn dir das Werkzeug geholfen hat, spendier uns einen Kaffee ☕.",
 
-  "error.unsupportedFormat": "Format in dieser Version nicht unterstützt ({format}). Verfügbare Formate: WAV, FLAC, MP3, OGG, M4A.",
+  "error.unsupportedFormat": "Format in dieser Version nicht unterstützt ({format}). Verfügbare Formate: WAV, FLAC, AIFF, MP3, OGG, M4A.",
   "error.loadFailed": "Datei konnte nicht geladen werden: {message}",
   "error.processFailed": "Datei konnte nicht verarbeitet werden: {message}",
   "error.workerError": "Interner Worker-Fehler: {message}",
   "error.copyDiagnostic": "Diagnoseinfo kopieren",
   "error.copied": "Kopiert — in ein GitHub Issue einfügen",
 
-  "mode.recording": "Aufnahme",
-  "mode.live": "Live",
+  "mode.recording": "Pitch-Korrektur",
+  "mode.live": "Stimmgerät",
   "tuner.refTitle": "Referenz",
   "tuner.title": "Stimmgerät",
   "mic.activate": "Mikrofon aktivieren",

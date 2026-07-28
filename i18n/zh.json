@@ -1,8 +1,7 @@
 {
   "meta.title": "Centrail — 基准音高诊断与校正",
-  "header.subtitle": "基准音高<br>诊断与校正",
   "drop.title": "将音频文件拖到此处，或点击选择文件",
-  "drop.formats": "WAV · FLAC · MP3 · OGG · M4A — 文件绝不会离开你的电脑",
+  "drop.formats": "WAV · FLAC · AIFF · MP3 · OGG · M4A — 文件绝不会离开你的电脑",
   "drop.aria": "加载音频文件",
   "dragVeil.label": "松开即可分析",
 
@@ -98,17 +97,17 @@
   "howItMeasures.p3b": "<b>不确定度（±）</b>是更诚实的置信度指标：通过分别测量全曲中交替分布的两组独立窗口，并报告二者的差异计算得出。如果两部分结果一致，即使R值较低，测量也是可重复的；如果两者差异很大，应用会将其判定为不可靠。<b>漂移</b>面板将曲目分成若干段，并估算每段的基准音。",
   "howItMeasures.p4": "校正使用<b>Rubber Band</b>（Finer模式，最高质量）在不改变节奏的前提下改变音高。测量与校正始终基于文件的<b>同一次解码</b>结果 — 绝不会用一种方式测量、又用另一种方式校正。",
 
-  "footer.kofi": "订阅可以获得更多选项和更快的速度。如果免费版已经够用，也欢迎请我们喝杯咖啡 ☕。",
+  "footer.kofi": "如果这个工具帮到了你，请我们喝杯咖啡 ☕。",
 
-  "error.unsupportedFormat": "此版本不支持该格式（{format}）。可用格式：WAV、FLAC、MP3、OGG、M4A。",
+  "error.unsupportedFormat": "此版本不支持该格式（{format}）。可用格式：WAV、FLAC、AIFF、MP3、OGG、M4A。",
   "error.loadFailed": "无法加载文件：{message}",
   "error.processFailed": "无法处理文件：{message}",
   "error.workerError": "Worker 内部错误：{message}",
   "error.copyDiagnostic": "复制诊断信息",
   "error.copied": "已复制 — 粘贴到 GitHub Issue 中即可",
 
-  "mode.recording": "录音",
-  "mode.live": "实时",
+  "mode.recording": "音高校正",
+  "mode.live": "调音器",
   "tuner.refTitle": "参考频率",
   "tuner.title": "调音器",
   "mic.activate": "启用麦克风",

@@ -26,8 +26,8 @@ const TEMPLATE = `
   <div class="card full" id="tunerCard">
     <h2 data-k="tuner.title"></h2>
     <div id="micGate">
-      <button class="preset active" id="micActivateBtn" type="button" style="padding:11px 22px"></button>
-      <button class="preset" id="micDeactivateBtn" type="button" style="padding:11px 22px;display:none"></button>
+      <button class="preset" id="micActivateBtn" type="button" style="padding:11px 22px"></button>
+      <button class="preset active" id="micDeactivateBtn" type="button" style="padding:11px 22px;display:none"></button>
       <p class="drift-note" id="micPrivacyNote" style="margin-top:10px"></p>
       <select id="micDeviceSelect" aria-label="Dispositivo de entrada" style="display:none;margin-top:10px"></select>
     </div>

@@ -4,6 +4,7 @@
 
 import { decodeFlac } from "../engine/decode.mjs?v=1.3.1";
 import { decodeWav, encodeWav } from "../engine/wav.mjs?v=1.3.1";
+import { decodeAiff } from "../engine/aiff.mjs?v=1.3.1";
 import { encodeFlac } from "../engine/flac-encode.mjs?v=1.3.1";
 import { encodeMp3 } from "../engine/mp3-encode.mjs?v=1.3.1";
 import { analyze } from "../engine/detect.mjs?v=1.3.1";
@@ -48,6 +49,8 @@ async function diagnose({ fileName, format, bytes, decoded }) {
     d = await decodeFlac(bytes);
   } else if (format === "wav") {
     d = decodeWav(bytes);
+  } else if (format === "aiff") {
+    d = decodeAiff(bytes);
   } else {
     throw new Error(`Formato no soportado en el worker: ${format}`);
   }

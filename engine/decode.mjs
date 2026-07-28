@@ -7,6 +7,7 @@
 
 import "../vendor/wasm-audio-decoders-flac/flac-decoder.min.js?v=1.3.1";
 import { decodeWav } from "./wav.mjs?v=1.3.1";
+import { decodeAiff } from "./aiff.mjs?v=1.3.1";
 
 /** @returns {'flac'|'wav'|'mp3'|'ogg'|'m4a'|'aiff'|'unknown'} */
 export function detectFormat(filename) {
@@ -55,7 +56,7 @@ export async function decodeFile(file, decodeViaBrowser) {
     return decodeWav(bytes);
   }
   if (format === "aiff") {
-    throw new Error("AIFF no tiene soporte nativo y aún no tiene decodificador propio (ver §4.2 de la especificación).");
+    return decodeAiff(bytes);
   }
   // mp3 / ogg / m4a: sin decodificador propio en v1 — se usa decodeAudioData UNA vez
   // y el mismo resultado alimenta detección y corrección (tubería unificada).

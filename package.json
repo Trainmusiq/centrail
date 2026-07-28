@@ -10,10 +10,11 @@
     "test:stereo": "node test/detect-stereo.mjs",
     "test:wav": "node test/wav-roundtrip.mjs",
     "test:flac": "node test/flac-roundtrip.mjs",
+    "test:aiff": "node test/aiff-decode.mjs",
     "test:duration": "node test/duration-exact.mjs",
     "test:temperament": "node test/temperament-tables.mjs",
     "test:i18n": "node test/i18n-coverage.mjs",
-    "test": "npm run test:roundtrip && npm run test:stereo && npm run test:wav && npm run test:flac && npm run test:duration && npm run test:temperament && npm run test:i18n",
+    "test": "npm run test:roundtrip && npm run test:stereo && npm run test:wav && npm run test:flac && npm run test:aiff && npm run test:duration && npm run test:temperament && npm run test:i18n",
     "bench:pitch": "node test/bench-pitch.mjs"
   },
   "dependencies": {
