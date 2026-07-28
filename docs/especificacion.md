@@ -40,8 +40,8 @@ Parámetros y método exactos del prototipo, que deben conservarse al portar:
 - Ponderación por energía comprimida: peso = √(magnitud/máximo), para que ningún pico domine.
 - Estimación final: peak del histograma de 100 bins (1 ¢/bin) refinado con **media circular local ±15 ¢**.
 - Patrón de referencia = 440 × 2^(desviación/1200).
-- **Deriva (drift)**: el tema se divide en 10 segmentos, cada uno con su propia media circular. Deriva máxima < 3 ¢ → corrección global basta; 3–10 ¢ → advertir variación leve (típico cinta); > 10 ¢ → recomendar corrección por tramos (feature futura).
-- Métricas de honestidad expuestas al usuario: **incertidumbre** (± cents; repetibilidad empírica entre dos subconjuntos de ventanas intercalados — ver hallazgo del 8 jul más abajo, reemplaza a la heurística analítica original) y **consistencia tonal** (largo del vector resultante R del histograma completo; R > 0.15 alta, 0.05–0.15 media, < 0.05 baja — umbrales recalibrados el 8 jul contra el techo real de música, antes 0.35/0.15). El criterio de "medición confiable" usa la incertidumbre empírica (≤ 1.5 ¢ alta, 1.5–4 ¢ media, > 4 ¢ no confiable), no R — R queda como indicador informativo secundario.
+- **Deriva (drift)**: el tema se divide en 10 segmentos, cada uno con su propia media circular. Deriva máxima < 3 ¢ → corrección global basta; 3–10 ¢ → declarar variación leve; > 10 ¢ → recomendar corrección por tramos (feature futura). El copy **no atribuye causa** a la deriva (v1.3.3): decía "típico de grabaciones en cinta", pero la medición no puede establecer el origen — y la deriva observada en material real oscila, no es monótona como sería la de una cinta.
+- Métricas de honestidad expuestas al usuario: **incertidumbre** (± cents; repetibilidad empírica entre dos subconjuntos de ventanas intercalados — ver hallazgo del 8 jul más abajo, reemplaza a la heurística analítica original) y **consistencia tonal** (largo del vector resultante R del histograma completo; R > 0.15 alta, 0.05–0.15 media, < 0.05 baja — umbrales recalibrados el 8 jul contra el techo real de música, antes 0.35/0.15). El criterio usa la incertidumbre empírica, no R — R queda como indicador informativo secundario. **Umbrales recalibrados el 28 jul 2026 (v1.3.3, ver §13):** ≤ 1.5 ¢ / 1.5–6 ¢ / > 6 ¢, y el nivel alto ya **no se llama "no confiable"**: describe variación del material, no falla de la medición.
 
 **Hallazgos de la validación con archivos reales (julio 2026, sesión Claude Code):**
 - **Tubería de decodificación unificada (requisito duro):** medir y corregir SIEMPRE sobre la misma decodificación. `decodeAudioData` del navegador puede resamplear al sample rate del `AudioContext` y desplazó la medición ~0.9 ¢ respecto de la decodificación FLAC nativa del mismo archivo. La app nunca debe medir por un camino y procesar por otro.
@@ -236,5 +236,65 @@ Cambios pedidos tras usar la v1.3 publicada en el navegador:
 
 - **Los modos se llaman por lo que HACEN, no por su medio**: "Grabación" → **Corrector pitch**, "En vivo" → **Afinador**. El nombre viejo describía la entrada (un archivo grabado / audio en vivo); el nuevo describe la herramienta, que es lo que el usuario busca. El corrector pitch sigue siendo el modo por defecto al entrar (ruta `#/record`).
 - **Header despejado**: se quitó el subtítulo "Diagnóstico y corrección de afinación de referencia" del encabezado (sigue vivo en `<title>`/`meta.title` para SEO y para la pestaña del navegador) — el selector de idioma queda solo, alineado a la derecha. La clave `header.subtitle` se eliminó de los 10 idiomas por quedar huérfana.
-- **Copy del café acortado**: "Si te sirvió la herramienta, invítanos un café ☕." reemplaza al texto largo de suscripción. ⚠ **Diverge deliberadamente del copy canónico registrado en `roadmap.md` §3.12** (regla 14 del CLAUDE.md) — decisión del fundador de aplicarlo solo en centrail por ahora; queda pendiente decidir si se propaga al resto del ecosistema (trackjunction, chordwagon) y se actualiza el canon.
+- **Copy del café acortado**: "Si te sirvió la herramienta, invítanos un café ☕." reemplaza al texto largo de suscripción. ✓ **Es el canon del ecosistema desde el 28 jul 2026** (decisión del fundador, v1.3.3): el texto anterior prometía "más opciones y mayor velocidad" por una suscripción que se construye recién en v2.5 y que está gated por el contador de demanda — una promesa sin respaldo en una herramienta ya publicada. El reemplazo exacto para `roadmap.md` §3.12 del repo padre, más el efecto en la regla 14 de trackjunction/chordwagon, está escrito y listo en `docs/canon-copy-kofi.md` (borrar ese archivo una vez aplicado en el repo padre).
 - **Énfasis invertido en los botones de micrófono**: "Activar micrófono" en gris neutro, "Detener micrófono" en ámbar. El ámbar es el color de "esto está activo/midiendo" en la identidad (§8), así que corresponde al estado encendido, no a la invitación a encender.
+
+## 13. v1.3.3 — Comunicación de confianza: tres niveles de veredicto (28 jul 2026)
+
+### 13.1 El problema: la pantalla se contradecía a sí misma
+
+Sobre el MISMO archivo, la pantalla decía dos cosas con dos tonos distintos. El panel de deriva informaba bien ("hay variación leve durante el tema; una corrección global deja el promedio en el destino"), pero el veredicto de arriba decía **"pero la medición no es confiable"**, y lo repetía en rojo en el bloque de honestidad. El usuario no leía "este material varía": leía **"esta herramienta falló"**. Eso es autoacusación, no transparencia.
+
+Caso real observado (rock denso, 4:07): patrón 441.79 Hz, desvío +7.0 ¢, incertidumbre ±4.5 ¢, R 6 %, 240 ventanas (75 excluidas), deriva máxima 9.8 ¢. Ese intervalo (≈ +2.5 a +11.5 ¢) **nunca cruza el cero**: "esta grabación está por encima de 440" es una conclusión sólida, aunque "está exactamente en 441.79" no lo sea. La pantalla comunicaba lo segundo y después se desdecía, cuando lo valioso era lo primero.
+
+### 13.2 Tres niveles de veredicto (antes dos)
+
+Los tres niveles ya se calculaban en el código, pero el nivel medio solo servía para pintar de ámbar un número: el copy era binario (`confident` / `lowConf`), así que un archivo de 4.5 ¢ caía en el mismo balde que uno de 40 ¢. Ahora los tres niveles llegan al copy, con la misma estructura de tres partes en los 9 mensajes y los 10 idiomas:
+
+**1) lo que SÍ se sabe → 2) la precisión → 3) la consecuencia para la corrección.**
+
+| Nivel | Condición | Qué comunica |
+|---|---|---|
+| `confident` | `unc ≤ 1.5 ¢` | Afirmación directa del desvío + el resultado esperado de la corrección. |
+| `medium` | `1.5 < unc ≤ 6 ¢` | Afirma la dirección del desvío, declara la variación, dice qué deja la corrección global y remite al panel de deriva para el detalle por sección. |
+| `highVar` | `unc > 6 ¢` | Mismo esqueleto, explicitando que un solo desplazamiento no puede dejar todo el archivo exacto. |
+
+**Regla dura de redacción (ahora regla 15 del CLAUDE.md):** nunca la frase "no es confiable" ni ninguna variante que califique negativamente a la propia medición. Se describe el material, no se acusa a la herramienta. Verificado con grep sobre los 10 idiomas: cero ocurrencias.
+
+El bloque de honestidad ya no repite lo que dijo el veredicto — `honesty.lowConf` se eliminó de los 10 idiomas. La variación vive arriba, en el veredicto, una sola vez.
+
+### 13.3 Umbral recalibrado: 4 ¢ → 6 ¢
+
+`unc` (repetibilidad empírica, §3) mide cuánto cambia la lectura según qué ventanas del archivo se midan. Los umbrales **no son constantes físicas**: son decisiones de producto, y ahora viven como constantes nombradas y documentadas (`UNC_TIGHT_CENTS`, `UNC_AUDIBLE_CENTS`) en vez de literales sueltos en medio de la lógica de render.
+
+Fundamento del valor nuevo, elegido por el fundador con su criterio auditivo: el umbral clásico de discriminación de altura en tonos sostenidos ronda los **5-6 ¢**. Por debajo de eso, el reparto entre partes del archivo no se distingue con fiabilidad como desafinación, así que una corrección global deja el archivo indistinguible de exacto para la mayoría de los oyentes. El valor anterior (4 ¢) leía como "no confiable" material que solo era denso: el caso de rock lo cruzaba **por medio cent**. El umbral bajo (1.5 ¢) se mantuvo: ahí la lectura ya es bastante más precisa que lo que se puede oír.
+
+### 13.4 Tono de los avisos secundarios
+
+- **Ventanas excluidas**: describía al detector funcionando bien (descartó lo que no tenía altura definida) pero con tratamiento visual de advertencia. Ahora va en afirmativo — "La medición usó solo las ventanas con altura definida; N quedaron fuera (percusión, silencio o ruido)" — con borde cian (datos/análisis en la identidad, §8) en vez de ámbar de alerta.
+- **Panel de deriva**: decía "(típico de grabaciones en cinta)", atribuyendo una causa que **la medición no puede establecer** — la deriva observada oscila, no es monótona como sería la de una cinta. Se retiró la atribución causal: ahora describe el patrón sin diagnosticar su origen.
+- **"Cómo mide" (`howItMeasures.p3b`)**: conservaba la misma autoacusación que se retiró del veredicto ("si difieren mucho, la app lo declara no confiable"). Reescrito en los 10 idiomas: si las mitades difieren, es la afinación del material la que se mueve, y el veredicto lo dice con el número a la vista.
+
+### 13.5 Verificación
+
+Ver §13.6 para la tabla de evidencia. Criterio de "hecho" de esta sesión: en cada estado, **el veredicto de arriba y el panel de deriva cuentan la misma historia con el mismo tono**.
+
+### 13.6 Hallazgo: `unc` y `maxDrift` son independientes — el copy no puede asumir que van juntas
+
+Durante la verificación, dos archivos obligaron a reescribir el copy que ya estaba "listo". El problema es el mismo en ambos, y vale documentarlo porque **es fácil de repetir**:
+
+**`unc` (repetibilidad entre ventanas intercaladas) y `maxDrift` (deriva entre los 10 segmentos) miden cosas distintas y pueden moverse en direcciones opuestas.**
+
+| Caso | `unc` | `maxDrift` | Qué significa |
+|---|---|---|---|
+| Cable A Tierra (real) | 0.1 ¢ | 7.2 ¢ | Lectura muy repetible, pero los pasajes sí varían entre sí |
+| Sintético de estrés | 10.0 ¢ | 0.3 ¢ | La afinación varía rápido ventana a ventana, pero se promedia estable dentro de cada segmento |
+
+Las dos redacciones fallidas y su corrección:
+
+1. **Nivel `confident` prometía "deja el archivo exacto en el destino"** — falso cuando `unc` es baja pero la deriva no: con 7.2 ¢ de deriva, el promedio queda exacto pero los pasajes no. El panel de abajo decía "pasajes repartidos" mientras el veredicto decía "exacto". Corregido a "lleva el archivo al destino que elijas", verdadero en ambos casos.
+2. **Nivel `highVar` mandaba a "revisar el panel de deriva antes de corregir"** — incoherente cuando la deriva es baja: el panel responde "la afinación es estable, una corrección global basta", contradiciendo el tono de alarma del veredicto. Corregido a un puntero neutro ("el panel de deriva muestra cómo se reparte"), válido con deriva alta o baja.
+
+**Regla que queda:** todo texto sobre la consecuencia de corregir debe ser verdadero para **cualquier combinación** de `unc` y `maxDrift`, porque el copy no sabe cuál de las dos está alta. Lo que afirme el veredicto sobre el promedio es seguro; lo que afirme sobre los pasajes individuales pertenece al panel de deriva, que sí lo mide.
+
+**Nota metodológica:** una deriva lenta **no** sube `unc`. Se comprobó al construir el material sintético: un vaivén de ±14 ¢ en bloques de 1.9 s dio `unc = 0.10 ¢`, porque los subconjuntos par e impar recorren ambos todo el tema y promedian igual. Para separar los dos subconjuntos hay que alternar la afinación al ritmo del muestreo de ventanas. Esto explica por qué en material real `unc` rara vez pasa de ~4 ¢ (máximo medido sobre 9 archivos: 3.36 ¢) y por qué el estado 3 solo pudo verificarse con material sintético declarado.
