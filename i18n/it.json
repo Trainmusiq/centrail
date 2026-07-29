@@ -129,5 +129,24 @@
   "drone.download": "Scarica WAV",
   "temperament.equal": "Equabile (temperato)",
   "temperament.just": "Naturale",
-  "temperament.meantone": "Mesotonico"
+  "temperament.meantone": "Mesotonico",
+
+  "footer.privacy": "Privacy",
+  "privacy.metaTitle": "Centrail — Privacy",
+  "privacy.title": "Privacy",
+  "privacy.updated": "Aggiornata il 28 luglio 2026",
+  "privacy.intro": "Il tuo audio non esce mai dal tuo dispositivo. Centrail non ha server, non ha account e non raccoglie dati personali.",
+  "privacy.local.title": "Dove viene elaborato il tuo audio",
+  "privacy.local.body": "Tutta l'analisi e tutta la correzione avvengono dentro il tuo browser, sulla tua macchina. Il file che apri non viene caricato da nessuna parte: viene letto in memoria, misurato, corretto, e il risultato viene scaricato localmente. Per questo la velocità dipende dalla tua macchina, e per questo puoi lavorare senza connessione.",
+  "privacy.mic.title": "Il microfono",
+  "privacy.mic.body": "L'accordatore dal vivo chiede il permesso del microfono solo quando lo attivi con un clic, mai in automatico. Il suono viene analizzato sul momento per stimare l'altezza e scartato subito: non viene registrato, né salvato, né trasmesso. Quando fermi il microfono, la cattura si chiude.",
+  "privacy.network.title": "L'unica cosa che esce dal tuo dispositivo",
+  "privacy.network.body": "Per aprire l'applicazione, il tuo browser la scarica da GitHub Pages, dove è ospitata. Quelle richieste sono le stesse che fa qualsiasi sito: GitHub, come qualunque server, può registrare dati tecnici della connessione come il tuo indirizzo IP e il tipo di browser. Succede al caricamento della pagina, non mentre la usi. Una volta caricata, misurare e correggere non generano altre richieste; installata come app, nemmeno quelle.",
+  "privacy.storage.title": "Cosa resta salvato nel tuo browser",
+  "privacy.storage.body": "Centrail ricorda due preferenze nell'archiviazione locale del browser: la lingua che hai scelto e la frequenza di riferimento con cui lavori. Restano sul tuo dispositivo, non viaggiano da nessuna parte, e spariscono se cancelli i dati del sito.",
+  "privacy.nothing.title": "Cosa non c'è",
+  "privacy.nothing.body": "Nessun account, nessuna registrazione. Nessuna analisi di terze parti, nessun cookie di tracciamento. Nessuna pubblicità. Nessun dato viene venduto o condiviso, perché non ne viene raccolto. Il codice è aperto e verificabile: puoi controllare esattamente cosa fa.",
+  "privacy.contact.title": "Contatto",
+  "privacy.contact.body": "Se hai dubbi su questa informativa, puoi scriverci aprendo una issue nel repository del progetto.",
+  "privacy.back": "← Torna a Centrail"
 }

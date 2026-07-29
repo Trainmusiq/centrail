@@ -1,0 +1,71 @@
+{
+  "name": "Centrail — diagnóstico y corrección de afinación",
+  "short_name": "Centrail",
+  "description": "Mide la afinación de referencia de una grabación con incertidumbre declarada y la corrige sin alterar el tempo. Incluye afinador en vivo y generador de drones. Todo el audio se procesa en tu dispositivo.",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["music", "utilities", "productivity"],
+  "start_url": "/centrail/",
+  "scope": "/centrail/",
+  "id": "/centrail/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#16181d",
+  "theme_color": "#16181d",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/narrow-corrector.png",
+      "sizes": "412x915",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Diagnóstico de afinación con incertidumbre declarada"
+    },
+    {
+      "src": "screenshots/narrow-afinador.png",
+      "sizes": "412x915",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Afinador en vivo y generador de drones"
+    },
+    {
+      "src": "screenshots/wide-corrector.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Diagnóstico de afinación con incertidumbre declarada"
+    },
+    {
+      "src": "screenshots/wide-afinador.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Afinador en vivo y generador de drones"
+    }
+  ]
+}

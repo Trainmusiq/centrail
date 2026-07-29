@@ -129,5 +129,24 @@
   "drone.download": "WAV herunterladen",
   "temperament.equal": "Gleichstufig (temperiert)",
   "temperament.just": "Rein",
-  "temperament.meantone": "Mitteltönig"
+  "temperament.meantone": "Mitteltönig",
+
+  "footer.privacy": "Datenschutz",
+  "privacy.metaTitle": "Centrail — Datenschutz",
+  "privacy.title": "Datenschutz",
+  "privacy.updated": "Aktualisiert am 28. Juli 2026",
+  "privacy.intro": "Dein Audio verlässt nie dein Gerät. Centrail hat keinen Server, keine Konten und erhebt keine personenbezogenen Daten.",
+  "privacy.local.title": "Wo dein Audio verarbeitet wird",
+  "privacy.local.body": "Die gesamte Analyse und die gesamte Korrektur passieren in deinem Browser, auf deinem eigenen Rechner. Die Datei, die du öffnest, wird nirgendwohin hochgeladen: sie wird in den Speicher gelesen, gemessen, korrigiert, und das Ergebnis wird lokal heruntergeladen. Deshalb hängt die Geschwindigkeit von deinem Rechner ab, und deshalb kannst du ohne Verbindung arbeiten.",
+  "privacy.mic.title": "Das Mikrofon",
+  "privacy.mic.body": "Das Live-Stimmgerät fragt die Mikrofonberechtigung nur ab, wenn du es per Klick aktivierst — nie automatisch. Der Ton wird im Moment analysiert, um die Tonhöhe zu schätzen, und sofort verworfen: er wird nicht aufgezeichnet, nicht gespeichert und nicht übertragen. Wenn du das Mikrofon stoppst, endet die Aufnahme.",
+  "privacy.network.title": "Das Einzige, was dein Gerät verlässt",
+  "privacy.network.body": "Um die App zu öffnen, lädt dein Browser sie von GitHub Pages, wo sie gehostet ist. Diese Anfragen sind dieselben, die jede Website stellt: GitHub kann, wie jeder Server, technische Verbindungsdaten wie deine IP-Adresse und den Browsertyp protokollieren. Das passiert beim Laden der Seite, nicht während der Nutzung. Einmal geladen, erzeugen Messen und Korrigieren keine weiteren Anfragen; als App installiert, nicht einmal das.",
+  "privacy.storage.title": "Was in deinem Browser gespeichert wird",
+  "privacy.storage.body": "Centrail merkt sich zwei Einstellungen im lokalen Speicher deines Browsers: die gewählte Sprache und den Referenzton, mit dem du arbeitest. Sie bleiben auf deinem Gerät, wandern nirgendwohin und verschwinden, wenn du die Daten der Seite löschst.",
+  "privacy.nothing.title": "Was es nicht gibt",
+  "privacy.nothing.body": "Keine Konten, keine Registrierung. Keine Analyse durch Dritte, keine Tracking-Cookies. Keine Werbung. Es werden keine Daten verkauft oder geteilt, weil keine erhoben werden. Der Code ist offen und prüfbar: du kannst genau nachsehen, was er tut.",
+  "privacy.contact.title": "Kontakt",
+  "privacy.contact.body": "Bei Fragen zu dieser Richtlinie kannst du uns erreichen, indem du ein Issue im Repository des Projekts eröffnest.",
+  "privacy.back": "← Zurück zu Centrail"
 }

@@ -2,18 +2,18 @@
 // Tubería de decodificación unificada (§3): el buffer decodificado se cachea aquí
 // y se reutiliza tal cual para "correct" — nunca se vuelve a decodificar el archivo.
 
-import { decodeFlac } from "../engine/decode.mjs?v=1.3.3";
-import { decodeWav, encodeWav } from "../engine/wav.mjs?v=1.3.3";
-import { decodeAiff } from "../engine/aiff.mjs?v=1.3.3";
-import { encodeFlac } from "../engine/flac-encode.mjs?v=1.3.3";
-import { encodeMp3 } from "../engine/mp3-encode.mjs?v=1.3.3";
-import { analyze } from "../engine/detect.mjs?v=1.3.3";
-import { loadRubberBand, pitchShiftOffline, peakOf, applyPeakSafety } from "../engine/correct.mjs?v=1.3.3";
+import { decodeFlac } from "../engine/decode.mjs?v=1.4.0";
+import { decodeWav, encodeWav } from "../engine/wav.mjs?v=1.4.0";
+import { decodeAiff } from "../engine/aiff.mjs?v=1.4.0";
+import { encodeFlac } from "../engine/flac-encode.mjs?v=1.4.0";
+import { encodeMp3 } from "../engine/mp3-encode.mjs?v=1.4.0";
+import { analyze } from "../engine/detect.mjs?v=1.4.0";
+import { loadRubberBand, pitchShiftOffline, peakOf, applyPeakSafety } from "../engine/correct.mjs?v=1.4.0";
 
 let rbApiPromise = null;
 function getRubberBand() {
   if (!rbApiPromise) {
-    rbApiPromise = fetch(new URL("../vendor/rubberband-wasm/rubberband.wasm?v=1.3.3", import.meta.url))
+    rbApiPromise = fetch(new URL("../vendor/rubberband-wasm/rubberband.wasm?v=1.4.0", import.meta.url))
       .then(r => r.arrayBuffer())
       .then(bytes => WebAssembly.compile(bytes))
       .then(mod => loadRubberBand(mod));

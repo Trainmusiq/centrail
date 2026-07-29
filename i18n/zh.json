@@ -129,5 +129,24 @@
   "drone.download": "下载 WAV",
   "temperament.equal": "十二平均律",
   "temperament.just": "纯律",
-  "temperament.meantone": "中庸律"
+  "temperament.meantone": "中庸律",
+
+  "footer.privacy": "隐私",
+  "privacy.metaTitle": "Centrail — 隐私",
+  "privacy.title": "隐私",
+  "privacy.updated": "更新于 2026 年 7 月 28 日",
+  "privacy.intro": "你的音频从不离开你的设备。Centrail 没有服务器，没有账户，也不收集个人数据。",
+  "privacy.local.title": "你的音频在哪里处理",
+  "privacy.local.body": "全部分析和全部校正都在你的浏览器里、你自己的机器上完成。你打开的文件不会上传到任何地方：它被读入内存、测量、校正，结果在本地下载。这就是速度取决于你机器的原因，也是你可以离线工作的原因。",
+  "privacy.mic.title": "关于麦克风",
+  "privacy.mic.body": "实时调音器只在你点击启用时才请求麦克风权限，绝不会自动请求。声音在当下被分析以估计音高，随即丢弃：不录制、不保存、不传输。停止麦克风后，采集即结束。",
+  "privacy.network.title": "唯一会离开你设备的东西",
+  "privacy.network.body": "为了打开应用，你的浏览器会从托管它的 GitHub Pages 下载应用本身。这些请求与任何网站发出的请求相同：GitHub 和任何服务器一样，可能记录连接的技术数据，比如你的 IP 地址和浏览器类型。这发生在页面加载时，而不是使用过程中。加载完成后，测量和校正不会产生任何额外请求；安装为应用后，连这一步都不需要。",
+  "privacy.storage.title": "浏览器里保存了什么",
+  "privacy.storage.body": "Centrail 只在浏览器的本地存储中记住两项偏好：你选择的语言，以及你使用的参考频率。它们留在你的设备上，不会发送到任何地方，清除网站数据后就会消失。",
+  "privacy.nothing.title": "没有什么",
+  "privacy.nothing.body": "没有账户，无需注册。没有第三方分析，没有追踪 cookie。没有广告。不出售也不共享数据，因为根本没有收集。代码开源可审计：你可以确切地看到它做了什么。",
+  "privacy.contact.title": "联系",
+  "privacy.contact.body": "如果你对本政策有疑问，可以在项目仓库中提交 issue 与我们联系。",
+  "privacy.back": "← 返回 Centrail"
 }

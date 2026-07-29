@@ -129,5 +129,24 @@
   "drone.download": "Download WAV",
   "temperament.equal": "Equal (tempered)",
   "temperament.just": "Just",
-  "temperament.meantone": "Meantone"
+  "temperament.meantone": "Meantone",
+
+  "footer.privacy": "Privacy",
+  "privacy.metaTitle": "Centrail — Privacy",
+  "privacy.title": "Privacy",
+  "privacy.updated": "Updated 28 July 2026",
+  "privacy.intro": "Your audio never leaves your device. Centrail has no server, no accounts, and collects no personal data.",
+  "privacy.local.title": "Where your audio is processed",
+  "privacy.local.body": "All analysis and all correction happen inside your browser, on your own machine. The file you open is never uploaded: it's read into memory, measured, corrected, and the result is downloaded locally. That's why speed depends on your machine, and why you can work without a connection.",
+  "privacy.mic.title": "The microphone",
+  "privacy.mic.body": "The live tuner asks for microphone permission only when you activate it with a click, never automatically. The sound is analysed on the spot to estimate pitch and discarded right away: it isn't recorded, stored or transmitted. When you stop the microphone, the capture closes.",
+  "privacy.network.title": "The only thing that does leave your device",
+  "privacy.network.body": "To open the app, your browser downloads it from GitHub Pages, where it's hosted. Those requests are the same ones any website makes: GitHub, like any server, may log technical connection data such as your IP address and browser type. That happens when the page loads, not while you use it. Once loaded, measuring and correcting generate no further requests; installed as an app, not even that.",
+  "privacy.storage.title": "What's stored in your browser",
+  "privacy.storage.body": "Centrail remembers two preferences in your browser's local storage: the language you chose and the reference pitch you work with. They stay on your device, they don't travel anywhere, and they disappear if you clear the site's data.",
+  "privacy.nothing.title": "What there isn't",
+  "privacy.nothing.body": "No accounts, no sign-up. No third-party analytics, no tracking cookies. No advertising. No data is sold or shared, because none is collected. The code is open and auditable: you can check exactly what it does.",
+  "privacy.contact.title": "Contact",
+  "privacy.contact.body": "If you have questions about this policy, you can reach us by opening an issue in the project repository.",
+  "privacy.back": "← Back to Centrail"
 }

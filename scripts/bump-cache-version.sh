@@ -19,7 +19,10 @@ if [ "$OLD" = "$NEW" ]; then
   exit 0
 fi
 
-FILES=(index.html engine/*.mjs workers/*.mjs)
+# privacidad.html y sw.js entran desde v1.4.0 (PWA). El service worker es crítico:
+# su CACHE_VERSION DEBE quedar sincronizada con el cache-busting, o el caché del SW
+# serviría una versión distinta de la que declaran los imports (ver comentario en sw.js).
+FILES=(index.html privacidad.html sw.js engine/*.mjs workers/*.mjs)
 for f in "${FILES[@]}"; do
   [ -f "$f" ] || continue
   # Reemplaza CUALQUIER "?v=<semver>", no solo la versión inmediatamente anterior.
@@ -33,6 +36,9 @@ done
 # APP_VERSION embebido en index.html (usado en el bloque de diagnóstico copiable)
 sed -i '' -E "s/APP_VERSION = \"[0-9]+\.[0-9]+\.[0-9]+\"/APP_VERSION = \"${NEW}\"/" index.html
 
+# CACHE_VERSION del service worker: es la MISMA versión, nunca una aparte (v1.4.0)
+sed -i '' -E "s/CACHE_VERSION = \"[0-9]+\.[0-9]+\.[0-9]+\"/CACHE_VERSION = \"${NEW}\"/" sw.js
+
 node -e "
 const fs = require('fs');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -40,9 +46,13 @@ pkg.version = '${NEW}';
 fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
 "
 
-# Verificación de huérfanos: ningún "?v=" ni APP_VERSION puede quedar en otra versión.
-ORPHANS=$(grep -rn "?v=" index.html engine/*.mjs workers/*.mjs 2>/dev/null \
-  | grep -v "?v=${NEW}" | grep -v '?v=\${APP_VERSION}' || true)
+# Verificación de huérfanos: ningún "?v=", APP_VERSION ni CACHE_VERSION puede quedar
+# en otra versión. Incluye sw.js y privacidad.html desde v1.4.0.
+# Solo referencias REALES: "?v=" seguido de un dígito. Así no matchea la prosa de los
+# comentarios (el guardián se disparaba con un comentario de sw.js que menciona "?v=").
+ORPHANS=$(grep -rnE "\?v=[0-9]" index.html privacidad.html sw.js engine/*.mjs workers/*.mjs 2>/dev/null \
+  | grep -v "?v=${NEW}" || true)
+ORPHANS="$ORPHANS$(grep -n "CACHE_VERSION = " sw.js | grep -v "\"${NEW}\"" || true)"
 if [ -n "$ORPHANS" ]; then
   echo "ERROR: quedaron referencias en otra versión:" >&2
   echo "$ORPHANS" >&2

@@ -129,5 +129,24 @@
   "drone.download": "WAV 다운로드",
   "temperament.equal": "평균율",
   "temperament.just": "순정율",
-  "temperament.meantone": "중전율"
+  "temperament.meantone": "중전율",
+
+  "footer.privacy": "개인정보",
+  "privacy.metaTitle": "Centrail — 개인정보",
+  "privacy.title": "개인정보",
+  "privacy.updated": "2026년 7월 28일 갱신",
+  "privacy.intro": "오디오는 절대 기기 밖으로 나가지 않습니다. Centrail에는 서버도 계정도 없으며 개인정보를 수집하지 않습니다.",
+  "privacy.local.title": "오디오가 처리되는 곳",
+  "privacy.local.body": "분석과 보정은 모두 사용자의 기기에서, 브라우저 안에서 이루어집니다. 열어놓은 파일은 어디에도 업로드되지 않습니다. 메모리로 읽어 측정하고 보정한 뒤 결과를 로컬로 내려받습니다. 속도가 기기 성능에 좌우되는 이유이자, 인터넷 없이도 작업할 수 있는 이유입니다.",
+  "privacy.mic.title": "마이크",
+  "privacy.mic.body": "실시간 튜너는 사용자가 클릭으로 켤 때만 마이크 권한을 요청하며, 자동으로 요청하지 않습니다. 소리는 그 자리에서 음높이를 추정하는 데 쓰이고 곧바로 폐기됩니다. 녹음하지도, 저장하지도, 전송하지도 않습니다. 마이크를 멈추면 캡처도 종료됩니다.",
+  "privacy.network.title": "기기 밖으로 나가는 유일한 것",
+  "privacy.network.body": "앱을 열 때 브라우저는 앱이 호스팅된 GitHub Pages에서 앱을 내려받습니다. 이는 모든 웹사이트가 하는 것과 같은 요청입니다. GitHub는 다른 서버와 마찬가지로 IP 주소나 브라우저 종류 같은 접속 기술 정보를 기록할 수 있습니다. 이는 페이지를 불러올 때 일어나며, 사용 중에는 일어나지 않습니다. 일단 불러온 뒤에는 측정과 보정이 추가 요청을 만들지 않고, 앱으로 설치하면 그마저도 필요 없습니다.",
+  "privacy.storage.title": "브라우저에 저장되는 것",
+  "privacy.storage.body": "Centrail은 브라우저 로컬 저장소에 두 가지 설정만 기억합니다. 선택한 언어와 작업에 사용하는 기준 주파수입니다. 기기 안에 남고 어디로도 전송되지 않으며, 사이트 데이터를 지우면 함께 사라집니다.",
+  "privacy.nothing.title": "없는 것",
+  "privacy.nothing.body": "계정도 가입도 없습니다. 제3자 분석도 추적 쿠키도 없습니다. 광고도 없습니다. 수집하는 데이터가 없으니 판매하거나 공유할 것도 없습니다. 코드는 공개되어 있어 무엇을 하는지 직접 확인할 수 있습니다.",
+  "privacy.contact.title": "연락처",
+  "privacy.contact.body": "이 방침에 대해 궁금한 점이 있으면 프로젝트 저장소에 이슈를 열어 문의할 수 있습니다.",
+  "privacy.back": "← Centrail로 돌아가기"
 }

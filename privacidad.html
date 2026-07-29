@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Centrail — Privacidad</title>
+<meta name="theme-color" content="#16181d">
+<link rel="manifest" href="manifest.webmanifest?v=1.4.0">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="stylesheet" href="fonts/fonts.css?v=1.4.0">
+<style>
+  :root {
+    --bg: #16181d; --panel: #1e2128; --panel-2: #24272f; --line: #33373f;
+    --ink: #e9e5d9; --ink-dim: #9a968c; --amber: #f2a33c; --cyan: #5fd4c4;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "Archivo", -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans);
+    min-height: 100vh; padding: 28px 16px 64px;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, #21242c 0%, transparent 60%);
+  }
+  .rig { max-width: 720px; margin: 0 auto; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 22px;
+  }
+  h1 { font-size: 20px; font-weight: 600; letter-spacing: 0.04em; }
+  h1 .num { color: var(--amber); font-family: var(--mono); font-weight: 500; }
+  .lang-select {
+    font-family: var(--mono); font-size: 11px; background: var(--panel-2);
+    border: 1px solid var(--line); color: var(--ink-dim); padding: 4px 8px;
+    border-radius: 5px; cursor: pointer;
+  }
+  .lang-select:hover { color: var(--ink); border-color: var(--ink-dim); }
+
+  h2 {
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-dim);
+    margin: 26px 0 10px;
+  }
+  .page-title { font-size: 26px; font-weight: 600; margin-bottom: 8px; }
+  .updated { font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim); margin-bottom: 20px; }
+  p { font-size: 14px; line-height: 1.7; color: var(--ink); max-width: 64ch; }
+  p + p { margin-top: 10px; }
+  .lead {
+    background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--cyan);
+    border-radius: 10px; padding: 16px 18px; margin-bottom: 8px;
+  }
+  .lead p { color: var(--ink); }
+  .back { margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .back a, .repo a {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-dim);
+    text-decoration: none; letter-spacing: 0.04em;
+  }
+  .back a:hover, .repo a:hover { color: var(--cyan); }
+  .repo { margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="rig">
+  <header>
+    <h1>Cent<span class="num">rail</span></h1>
+    <select class="lang-select" id="langSelect" aria-label="Idioma / Language"></select>
+  </header>
+
+  <div class="page-title" data-i18n="privacy.title"></div>
+  <div class="updated" data-i18n="privacy.updated"></div>
+
+  <div class="lead"><p data-i18n="privacy.intro"></p></div>
+
+  <h2 data-i18n="privacy.local.title"></h2>
+  <p data-i18n="privacy.local.body"></p>
+
+  <h2 data-i18n="privacy.mic.title"></h2>
+  <p data-i18n="privacy.mic.body"></p>
+
+  <h2 data-i18n="privacy.network.title"></h2>
+  <p data-i18n="privacy.network.body"></p>
+
+  <h2 data-i18n="privacy.storage.title"></h2>
+  <p data-i18n="privacy.storage.body"></p>
+
+  <h2 data-i18n="privacy.nothing.title"></h2>
+  <p data-i18n="privacy.nothing.body"></p>
+
+  <h2 data-i18n="privacy.contact.title"></h2>
+  <p data-i18n="privacy.contact.body"></p>
+  <div class="repo"><a href="https://github.com/Trainmusiq/centrail" target="_blank" rel="noopener">github.com/Trainmusiq/centrail</a></div>
+
+  <div class="back"><a href="./" data-i18n="privacy.back"></a></div>
+</div>
+
+<script type="module">
+"use strict";
+import { AVAILABLE_LOCALES, loadLocale, detectDefaultLocale, saveLocale, makeTranslator } from "./engine/i18n.mjs?v=1.4.0";
+
+let t = (key) => key;
+
+function applyStaticI18n() {
+  document.title = t("privacy.metaTitle");
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+}
+
+const langSelectEl = document.getElementById("langSelect");
+for (const { code, label } of AVAILABLE_LOCALES) {
+  const opt = document.createElement("option");
+  opt.value = code;
+  opt.textContent = label;
+  langSelectEl.appendChild(opt);
+}
+
+async function setLocale(code) {
+  const dict = await loadLocale(code);
+  t = makeTranslator(dict);
+  saveLocale(code);
+  document.documentElement.lang = code;
+  applyStaticI18n();
+  langSelectEl.value = code;
+}
+langSelectEl.addEventListener("change", () => setLocale(langSelectEl.value));
+
+await setLocale(detectDefaultLocale());
+</script>
+</body>
+</html>
